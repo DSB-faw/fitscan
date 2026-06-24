@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitScan — Mobile Wireframes</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f0f0f0; font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px 20px; }
+  h1 { font-size: 1.4rem; font-weight: 700; color: #111; margin-bottom: 6px; letter-spacing: -0.5px; }
+  .subtitle { font-size: 0.8rem; color: #888; margin-bottom: 40px; }
+  .section-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #888; margin: 40px 0 20px; border-top: 1px solid #ddd; padding-top: 20px; }
+  .screens-row { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+  .screen-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .screen-label { font-size: 0.7rem; font-weight: 600; color: #555; letter-spacing: 0.05em; text-align: center; }
+  .screen-num { font-size: 0.65rem; color: #aaa; }
+
+  /* Phone shell */
+  .phone { width: 220px; background: #fff; border-radius: 36px; border: 3px solid #222; box-shadow: 0 8px 32px rgba(0,0,0,0.12); overflow: hidden; position: relative; }
+  .phone-notch { background: #222; height: 28px; display: flex; align-items: center; justify-content: center; }
+  .phone-notch-pill { background: #000; width: 60px; height: 12px; border-radius: 6px; }
+  .phone-screen { padding: 0; min-height: 420px; background: #fff; overflow: hidden; }
+  .phone-home { background: #222; height: 20px; display: flex; align-items: center; justify-content: center; }
+  .phone-home-bar { background: #555; width: 60px; height: 4px; border-radius: 2px; }
+
+  /* Status bar */
+  .status-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 14px 4px; background: inherit; }
+  .status-time { font-size: 9px; font-weight: 700; color: #333; }
+  .status-icons { display: flex; gap: 4px; align-items: center; }
+  .status-icons span { font-size: 8px; color: #333; }
+
+  /* Common UI */
+  .header { padding: 10px 14px 8px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #f0f0f0; }
+  .header-back { width: 20px; height: 20px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #555; flex-shrink: 0; }
+  .header-title { font-size: 11px; font-weight: 700; color: #111; }
+  .header-sub { font-size: 8px; color: #888; }
+  .logo-bar { padding: 14px; text-align: center; }
+  .logo { display: inline-block; background: #111; color: #fff; font-size: 11px; font-weight: 800; padding: 5px 12px; border-radius: 6px; letter-spacing: 1px; }
+  .gym-tag { font-size: 8px; color: #888; margin-top: 3px; }
+
+  .btn { display: block; width: 100%; padding: 10px; border-radius: 10px; font-size: 11px; font-weight: 700; text-align: center; cursor: pointer; border: none; }
+  .btn-primary { background: #111; color: #fff; }
+  .btn-secondary { background: #f5f5f5; color: #333; }
+  .btn-outline { background: transparent; color: #111; border: 1.5px solid #111; }
+  .btn-green { background: #1a9e5c; color: #fff; }
+  .btn-red { background: #e53e3e; color: #fff; }
+  .btn-sm { padding: 7px 10px; font-size: 9px; border-radius: 8px; width: auto; display: inline-block; }
+
+  .input-group { margin-bottom: 10px; }
+  .input-label { font-size: 8px; font-weight: 600; color: #555; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .input-field { width: 100%; padding: 8px 10px; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 10px; color: #333; background: #fafafa; }
+  .input-field.focused { border-color: #111; }
+
+  .section-pad { padding: 14px; }
+  .divider { height: 1px; background: #f0f0f0; margin: 8px 0; }
+  .tag { display: inline-block; padding: 2px 7px; border-radius: 20px; font-size: 8px; font-weight: 600; }
+  .tag-green { background: #e8f8f0; color: #1a9e5c; }
+  .tag-orange { background: #fff3e0; color: #e65c00; }
+  .tag-red { background: #ffeaea; color: #e53e3e; }
+  .tag-blue { background: #e8f0ff; color: #2563eb; }
+  .tag-gray { background: #f5f5f5; color: #666; }
+
+  .measurement-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f5f5f5; }
+  .measurement-label { font-size: 9px; color: #666; }
+  .measurement-value { font-size: 11px; font-weight: 700; color: #111; }
+  .measurement-delta { font-size: 8px; font-weight: 600; }
+  .delta-down { color: #1a9e5c; }
+  .delta-up { color: #e53e3e; }
+
+  .avatar { width: 48px; height: 48px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #999; flex-shrink: 0; }
+  .avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #999; flex-shrink: 0; }
+
+  .card { background: #f8f8f8; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+  .card-white { background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 8px; border: 1px solid #efefef; }
+
+  /* Scan overlay */
+  .scan-viewport { background: #1a1a2e; position: relative; height: 200px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .scan-guide { width: 90px; height: 160px; border: 2px solid rgba(0,255,136,0.8); border-radius: 12px; position: relative; }
+  .scan-corner { position: absolute; width: 12px; height: 12px; }
+  .scan-corner.tl { top: -1px; left: -1px; border-top: 3px solid #00ff88; border-left: 3px solid #00ff88; }
+  .scan-corner.tr { top: -1px; right: -1px; border-top: 3px solid #00ff88; border-right: 3px solid #00ff88; }
+  .scan-corner.bl { bottom: -1px; left: -1px; border-bottom: 3px solid #00ff88; border-left: 3px solid #00ff88; }
+  .scan-corner.br { bottom: -1px; right: -1px; border-bottom: 3px solid #00ff88; border-right: 3px solid #00ff88; }
+  .scan-person { position: absolute; font-size: 60px; opacity: 0.3; }
+  .scan-landmarks circle { fill: #00ff88; }
+  .scan-status { position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 9px; color: #00ff88; font-weight: 600; }
+  .scan-instruction { position: absolute; top: 8px; left: 0; right: 0; text-align: center; font-size: 8px; color: #fff; background: rgba(0,0,0,0.5); padding: 3px 8px; margin: 0 20px; border-radius: 10px; }
+
+  .progress-bar-wrap { background: #f0f0f0; border-radius: 10px; height: 6px; overflow: hidden; margin: 4px 0; }
+  .progress-bar-fill { height: 100%; border-radius: 10px; background: #111; }
+
+  .bottom-nav { display: flex; border-top: 1px solid #f0f0f0; background: #fff; }
+  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 6px 0; gap: 2px; }
+  .nav-icon { font-size: 14px; }
+  .nav-label { font-size: 7px; color: #aaa; }
+  .nav-item.active .nav-label { color: #111; font-weight: 700; }
+  .nav-item.active .nav-icon { filter: none; }
+
+  /* Chart placeholder */
+  .chart-area { background: #f8f8f8; border-radius: 10px; height: 70px; display: flex; align-items: flex-end; padding: 8px; gap: 4px; overflow: hidden; }
+  .chart-bar { background: #ddd; border-radius: 3px 3px 0 0; flex: 1; }
+  .chart-bar.active { background: #111; }
+  .chart-line { width: 100%; height: 60px; position: relative; }
+
+  .consent-box { background: #fffbe6; border: 1.5px solid #f6c90e; border-radius: 12px; padding: 12px; margin: 10px 14px; }
+  .consent-title { font-size: 10px; font-weight: 700; color: #333; margin-bottom: 6px; }
+  .consent-item { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 4px; }
+  .consent-dot { width: 5px; height: 5px; border-radius: 50%; background: #f6c90e; margin-top: 4px; flex-shrink: 0; }
+  .consent-text { font-size: 8px; color: #555; line-height: 1.4; }
+
+  .otp-boxes { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
+  .otp-box { width: 36px; height: 40px; border: 2px solid #e0e0e0; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #111; }
+  .otp-box.filled { border-color: #111; background: #f8f8f8; }
+
+  .share-option { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+  .share-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .share-text { font-size: 9px; font-weight: 600; color: #333; }
+  .share-sub { font-size: 8px; color: #aaa; }
+
+  .plan-card { background: linear-gradient(135deg, #111 0%, #333 100%); border-radius: 14px; padding: 14px; color: #fff; margin-bottom: 10px; }
+  .plan-name { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7); }
+  .plan-type { font-size: 16px; font-weight: 800; margin: 2px 0; }
+  .plan-dates { font-size: 8px; color: rgba(255,255,255,0.6); }
+  .plan-amount { font-size: 13px; font-weight: 700; }
+
+  .timeline-item { display: flex; gap: 10px; margin-bottom: 10px; position: relative; }
+  .timeline-dot { width: 10px; height: 10px; border-radius: 50%; background: #111; margin-top: 3px; flex-shrink: 0; }
+  .timeline-line { position: absolute; left: 4px; top: 13px; bottom: -10px; width: 2px; background: #e0e0e0; }
+  .timeline-content { font-size: 9px; color: #555; line-height: 1.5; }
+  .timeline-date { font-size: 8px; color: #aaa; }
+
+  .steps-indicator { display: flex; gap: 6px; justify-content: center; padding: 10px 0; }
+  .step-dot { width: 6px; height: 6px; border-radius: 50%; background: #e0e0e0; }
+  .step-dot.active { background: #111; width: 18px; border-radius: 3px; }
+
+  /* Comparison layout */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .compare-col { background: #f8f8f8; border-radius: 10px; padding: 8px; text-align: center; }
+  .compare-label { font-size: 7px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .compare-silhouette { height: 60px; display: flex; align-items: center; justify-content: center; font-size: 36px; opacity: 0.5; }
+  .compare-date { font-size: 7px; color: #aaa; margin-top: 4px; }
+
+  .notification-item { display: flex; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; align-items: flex-start; }
+  .notif-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .notif-title { font-size: 9px; font-weight: 600; color: #333; }
+  .notif-body { font-size: 8px; color: #888; line-height: 1.4; }
+  .notif-time { font-size: 7px; color: #bbb; }
+</style>
+</head>
+<body>
+
+<h1>FitScan — Mobile Wireframes</h1>
+<p class="subtitle">Member & Trainer flows · All screens · Phase 1 MVP</p>
+
+<!-- ═══════════════════════════════════════════════ -->
+<div class="section-title">Member Flow — Onboarding</div>
+<div class="screens-row">
+
+  <!-- Screen 1: QR Landing -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div></div>
+        <div style="padding:20px 14px; text-align:center;">
+          <div style="width:64px;height:64px;background:#f0f0f0;border-radius:16px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:32px;">🏋️</div>
+          <div style="font-size:14px;font-weight:800;color:#111;margin-bottom:4px;">IronClub Fitness</div>
+          <div style="font-size:8px;color:#888;margin-bottom:20px;">Sector 14, Gurgaon</div>
+          <div style="background:#f8f8f8;border-radius:14px;padding:16px;margin-bottom:16px;">
+            <div style="font-size:10px;font-weight:700;color:#111;margin-bottom:6px;">Welcome!</div>
+            <div style="font-size:8px;color:#666;line-height:1.5;">Scan your body in 60 seconds. Track your fitness progress over time.</div>
+          </div>
+          <button class="btn btn-primary" style="margin-bottom:8px;">View My Profile</button>
+          <button class="btn btn-secondary">New Member? Sign Up</button>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">01 — QR Landing</div>
+    <div class="screen-num">Member scans gym QR</div>
+  </div>
+
+  <!-- Screen 2: OTP -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div class="section-pad">
+          <div style="margin:10px 0 20px;">
+            <div style="font-size:16px;font-weight:800;color:#111;margin-bottom:4px;">Enter your number</div>
+            <div style="font-size:9px;color:#888;">We'll send a verification code</div>
+          </div>
+          <div class="input-group">
+            <div class="input-label">Mobile Number</div>
+            <div style="display:flex;gap:6px;">
+              <div class="input-field" style="width:44px;text-align:center;flex-shrink:0;">+91</div>
+              <div class="input-field focused" style="flex:1;">98765 43210</div>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:8px;">Send OTP</button>
+          <div style="text-align:center;margin-top:14px;">
+            <div style="font-size:8px;color:#aaa;">Or login with</div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="btn btn-secondary btn-sm" style="flex:1;">Google</button>
+              <button class="btn btn-secondary btn-sm" style="flex:1;">WhatsApp</button>
+            </div>
+          </div>
+        </div>
+        <div style="margin:0 14px;">
+          <div style="font-size:8px;font-weight:700;color:#111;margin-bottom:10px;">Enter OTP</div>
+          <div class="otp-boxes">
+            <div class="otp-box filled">4</div>
+            <div class="otp-box filled">2</div>
+            <div class="otp-box filled">1</div>
+            <div class="otp-box">_</div>
+            <div class="otp-box">_</div>
+            <div class="otp-box">_</div>
+          </div>
+          <div style="font-size:8px;color:#aaa;text-align:center;">Resend in 28s</div>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">02 — OTP Verification</div>
+    <div class="screen-num">Phone + OTP login</div>
+  </div>
+
+  <!-- Screen 3: Profile Setup -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div class="header"><div class="header-back">←</div><div><div class="header-title">Complete Profile</div></div></div>
+        <div class="section-pad">
+          <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:16px;">
+            <div style="width:56px;height:56px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:24px;border:2px dashed #ccc;margin-bottom:6px;">👤</div>
+            <div style="font-size:8px;color:#888;">Tap to add photo</div>
+          </div>
+          <div class="input-group"><div class="input-label">Full Name</div><div class="input-field focused">Rahul Sharma</div></div>
+          <div class="input-group"><div class="input-label">Height</div>
+            <div style="display:flex;gap:6px;">
+              <div class="input-field" style="flex:1;">5</div>
+              <div style="display:flex;align-items:center;font-size:9px;color:#888;">ft</div>
+              <div class="input-field" style="flex:1;">8</div>
+              <div style="display:flex;align-items:center;font-size:9px;color:#888;">in</div>
+            </div>
+          </div>
+          <div class="input-group"><div class="input-label">Weight (optional)</div><div class="input-field">72 kg</div></div>
+          <div class="steps-indicator"><div class="step-dot active"></div><div class="step-dot active"></div><div class="step-dot"></div></div>
+          <button class="btn btn-primary">Continue</button>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">03 — Profile Setup</div>
+    <div class="screen-num">Name, height, photo</div>
+  </div>
+
+  <!-- Screen 4: Member Profile Home -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px;background:#fff;border-bottom:1px solid #f0f0f0;">
+          <div class="avatar">👤</div>
+          <div style="flex:1;">
+            <div style="font-size:12px;font-weight:800;color:#111;">Rahul Sharma</div>
+            <div style="font-size:8px;color:#888;">IronClub Fitness</div>
+          </div>
+          <span class="tag tag-green">Active</span>
+        </div>
+        <div class="section-pad">
+          <div class="plan-card">
+            <div class="plan-name">Current Plan</div>
+            <div class="plan-type">3 Months</div>
+            <div class="plan-dates">15 Jan 2025 → 15 Apr 2025</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+              <div class="plan-amount">₹2,500</div>
+              <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:8px;padding:3px 8px;border-radius:10px;">28 days left</span>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+            <button class="btn btn-primary btn-sm" style="width:100%;padding:10px;">📷 Scan Body</button>
+            <button class="btn btn-secondary btn-sm" style="width:100%;padding:10px;">📊 Progress</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button class="btn btn-secondary btn-sm" style="width:100%;padding:10px;">🧾 Invoice</button>
+            <button class="btn btn-secondary btn-sm" style="width:100%;padding:10px;">⚙️ Settings</button>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item active"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+          <div class="nav-item"><div class="nav-icon">📷</div><div class="nav-label">Scan</div></div>
+          <div class="nav-item"><div class="nav-icon">📊</div><div class="nav-label">Progress</div></div>
+          <div class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">04 — Member Home</div>
+    <div class="screen-num">Profile + plan overview</div>
+  </div>
+
+  <!-- Screen 5: Invoice -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div class="header"><div class="header-back">←</div><div><div class="header-title">Invoice</div><div class="header-sub">Receipt #GYM-2025-0142</div></div></div>
+        <div class="section-pad">
+          <div class="card-white" style="margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-size:14px;font-weight:800;color:#111;">IronClub</div>
+              <span class="tag tag-green">PAID</span>
+            </div>
+            <div style="font-size:8px;color:#888;margin-bottom:8px;">Sector 14, Gurgaon, HR 122001</div>
+            <div class="divider"></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:8px;color:#888;">Member</span><span style="font-size:8px;font-weight:600;">Rahul Sharma</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:8px;color:#888;">Plan</span><span style="font-size:8px;font-weight:600;">3 Months</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:8px;color:#888;">Valid</span><span style="font-size:8px;font-weight:600;">15 Jan – 15 Apr</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:8px;color:#888;">Mode</span><span style="font-size:8px;font-weight:600;">UPI</span></div>
+            <div class="divider"></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:8px;color:#888;">Amount</span><span style="font-size:8px;font-weight:600;">₹2,381</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:8px;color:#888;">GST 18%</span><span style="font-size:8px;font-weight:600;">₹119</span></div>
+            <div class="divider"></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:9px;font-weight:700;">Total</span><span style="font-size:11px;font-weight:800;">₹2,500</span></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" style="flex:1;padding:10px;">⬇ Download PDF</button>
+            <button class="btn btn-secondary btn-sm" style="flex:1;padding:10px;">Share</button>
+          </div>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">05 — Invoice</div>
+    <div class="screen-num">Plan + payment receipt</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<div class="section-title">Consent Flows</div>
+<div class="screens-row">
+
+  <!-- Screen 6: Self Consent Popup -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen" style="position:relative;">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <!-- Blurred bg -->
+        <div style="padding:14px;filter:blur(1px);opacity:0.3;">
+          <div style="font-size:12px;font-weight:800;color:#111;margin-bottom:8px;">Rahul Sharma</div>
+          <div class="plan-card"><div class="plan-type">3 Months Active</div></div>
+        </div>
+        <!-- Modal overlay -->
+        <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;">
+          <div style="background:#fff;border-radius:20px 20px 0 0;padding:16px;width:100%;">
+            <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 14px;"></div>
+            <div style="font-size:12px;font-weight:800;color:#111;margin-bottom:4px;">Body Scan Consent</div>
+            <div style="font-size:8px;color:#888;margin-bottom:12px;">Please read before proceeding</div>
+            <div class="consent-box">
+              <div class="consent-item"><div class="consent-dot"></div><div class="consent-text">Body measurements will be captured (shoulders, chest, waist, hips, thighs, biceps, inseam)</div></div>
+              <div class="consent-item"><div class="consent-dot"></div><div class="consent-text">Photos are stored for 24 hours then permanently deleted</div></div>
+              <div class="consent-item"><div class="consent-dot"></div><div class="consent-text">Measurements are stored securely and only visible to you and your trainer</div></div>
+              <div class="consent-item"><div class="consent-dot"></div><div class="consent-text">You can delete your data anytime from Settings</div></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+              <button class="btn btn-secondary" style="flex:1;padding:10px;font-size:10px;">Decline</button>
+              <button class="btn btn-primary" style="flex:1;padding:10px;font-size:10px;">I Consent</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">06 — Self Consent</div>
+    <div class="screen-num">Popup before self-scan</div>
+  </div>
+
+  <!-- Screen 7: Trainer Consent SMS received on member phone -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div class="header"><div class="header-back">←</div><div><div class="header-title">Consent Request</div><div class="header-sub">From IronClub Fitness</div></div></div>
+        <div class="section-pad">
+          <div style="text-align:center;margin:10px 0 16px;">
+            <div style="font-size:28px;margin-bottom:6px;">🏋️</div>
+            <div style="font-size:11px;font-weight:700;color:#111;">Trainer Ravi wants to scan your body measurements</div>
+            <div style="font-size:8px;color:#888;margin-top:4px;">IronClub Fitness · Today 9:38 AM</div>
+          </div>
+          <div class="consent-box">
+            <div class="consent-title">What will be captured:</div>
+            <div class="consent-item"><div class="consent-dot"></div><div class="consent-text">Full body measurements (8 data points)</div></div>
+            <div class="consent-item"><div class="consent-dot"></div><div class="consent-text">Front and side scan photos (deleted in 24hrs)</div></div>
+            <div class="consent-item"><div class="consent-dot"></div><div class="consent-text">Trainer Ravi and you will see the results</div></div>
+            <div class="consent-item"><div class="consent-dot"></div><div class="consent-text">Nothing shared externally without your permission</div></div>
+          </div>
+          <div style="background:#f8f8f8;border-radius:10px;padding:10px;margin:10px 0;display:flex;align-items:center;gap:8px;">
+            <div style="font-size:18px;">⏱</div>
+            <div style="font-size:9px;color:#555;">This consent link expires in <strong>08:42</strong></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-red" style="flex:1;padding:10px;font-size:10px;">Decline</button>
+            <button class="btn btn-green" style="flex:1;padding:10px;font-size:10px;">Give Consent ✓</button>
+          </div>
+          <div style="font-size:8px;color:#aaa;text-align:center;margin-top:8px;">Link expires in 10 minutes</div>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">07 — Trainer Consent</div>
+    <div class="screen-num">Member receives + approves</div>
+  </div>
+
+  <!-- Screen 8: Share Consent from Trainer -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div class="header"><div class="header-back">←</div><div><div class="header-title">Share Consent</div><div class="header-sub">Trainer wants to post your results</div></div></div>
+        <div class="section-pad">
+          <div style="text-align:center;margin-bottom:14px;">
+            <div style="font-size:24px;margin-bottom:6px;">📱</div>
+            <div style="font-size:11px;font-weight:700;color:#111;">Trainer Ravi wants to share your transformation on Instagram</div>
+          </div>
+          <div style="font-size:9px;font-weight:600;color:#333;margin-bottom:8px;">What will be shared:</div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:9px;color:#333;"><input type="radio" name="share"/> Measurements card only (no body image)</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:9px;color:#333;"><input type="radio" name="share" checked/> Silhouette + measurements (no face)</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:9px;color:#333;background:#fff3e0;padding:6px 8px;border-radius:8px;"><input type="radio" name="share"/> Full photo with face <span style="font-size:7px;color:#e67e22;">(requires extra consent)</span></label>
+          </div>
+          <div style="background:#f8f8f8;border-radius:10px;padding:10px;margin-bottom:12px;font-size:8px;color:#666;line-height:1.5;">Gym name and your first name may appear. You can revoke sharing permission anytime.</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary" style="flex:1;padding:10px;font-size:10px;">Decline</button>
+            <button class="btn btn-primary" style="flex:1;padding:10px;font-size:10px;">Allow Share</button>
+          </div>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">08 — Share Consent</div>
+    <div class="screen-num">Trainer social share approval</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<div class="section-title">Scan Mode Selection & Alignment Guides</div>
+<div class="screens-row">
+
+  <!-- NEW Screen A: Mode Selection -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div class="header"><div class="header-back">←</div><div><div class="header-title">How will you scan?</div><div class="header-sub">Choose your setup method</div></div></div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:10px;">
+
+          <!-- Option 1: Prop — Recommended -->
+          <div style="border:2px solid #111;border-radius:14px;padding:12px;position:relative;">
+            <div style="position:absolute;top:-9px;right:12px;background:#111;color:#fff;font-size:7px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:0.08em;">★ RECOMMENDED</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <div style="width:36px;height:36px;background:#f0f0f0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📱</div>
+              <div><div style="font-size:10px;font-weight:700;color:#111;">Prop Your Phone</div><div style="font-size:8px;color:#888;">Works solo · Most consistent</div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <div style="display:flex;gap:6px;align-items:center;"><div style="width:5px;height:5px;background:#1a9e5c;border-radius:50%;flex-shrink:0;"></div><div style="font-size:8px;color:#555;">Lean phone against wall or books</div></div>
+              <div style="display:flex;gap:6px;align-items:center;"><div style="width:5px;height:5px;background:#1a9e5c;border-radius:50%;flex-shrink:0;"></div><div style="font-size:8px;color:#555;">Fixed position = consistent scans</div></div>
+              <div style="display:flex;gap:6px;align-items:center;"><div style="width:5px;height:5px;background:#1a9e5c;border-radius:50%;flex-shrink:0;"></div><div style="font-size:8px;color:#555;">Voice guides tell you where to stand</div></div>
+            </div>
+            <div style="margin-top:8px;background:#f0f0f0;border-radius:6px;padding:4px 8px;display:flex;justify-content:space-between;"><span style="font-size:8px;color:#555;">Accuracy</span><span style="font-size:8px;font-weight:700;color:#1a9e5c;">±1.5–2cm</span></div>
+            <button class="btn btn-primary" style="margin-top:8px;padding:8px;font-size:9px;">Use Prop Mode →</button>
+          </div>
+
+          <!-- Option 2: Buddy -->
+          <div style="border:1.5px solid #e0e0e0;border-radius:14px;padding:12px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <div style="width:36px;height:36px;background:#f0f0f0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👥</div>
+              <div><div style="display:flex;align-items:center;gap:6px;"><div style="font-size:10px;font-weight:700;color:#111;">Buddy Holds Camera</div><span class="tag tag-blue" style="font-size:7px;">Good</span></div><div style="font-size:8px;color:#888;">Friend points at you</div></div>
+            </div>
+            <div style="margin-top:4px;background:#f0f0f0;border-radius:6px;padding:4px 8px;display:flex;justify-content:space-between;"><span style="font-size:8px;color:#555;">Accuracy</span><span style="font-size:8px;font-weight:700;color:#2563eb;">±2–2.5cm</span></div>
+            <button class="btn btn-secondary" style="margin-top:8px;padding:8px;font-size:9px;width:100%;">Use Buddy Mode →</button>
+          </div>
+
+          <!-- Option 3: Mirror -->
+          <div style="border:1.5px solid #e0e0e0;border-radius:14px;padding:12px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <div style="width:36px;height:36px;background:#f0f0f0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🪞</div>
+              <div><div style="display:flex;align-items:center;gap:6px;"><div style="font-size:10px;font-weight:700;color:#111;">Mirror Mode</div><span class="tag tag-gray" style="font-size:7px;">Backup</span></div><div style="font-size:8px;color:#888;">Use if above not possible</div></div>
+            </div>
+            <div style="margin-top:4px;background:#f0f0f0;border-radius:6px;padding:4px 8px;display:flex;justify-content:space-between;"><span style="font-size:8px;color:#555;">Accuracy</span><span style="font-size:8px;font-weight:700;color:#888;">±3–4cm</span></div>
+            <button class="btn btn-secondary" style="margin-top:8px;padding:8px;font-size:9px;width:100%;">Use Mirror Mode →</button>
+          </div>
+
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">NEW A — Mode Selection</div>
+    <div class="screen-num">Prop / Buddy / Mirror + accuracy</div>
+  </div>
+
+  <!-- NEW Screen B: Prop Mode Alignment Guide -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen" style="background:#111;">
+        <div class="status-bar" style="background:#111;"><span class="status-time" style="color:#fff;">9:41</span><div class="status-icons"><span style="color:#fff;">🔋</span></div></div>
+        <div style="background:#111;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="color:#fff;font-size:11px;font-weight:700;">📱 Prop Mode Setup</div>
+          <div style="display:flex;gap:6px;">
+            <div style="width:20px;height:20px;border-radius:50%;background:#1a9e5c;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:700;">1</div>
+            <div style="width:20px;height:20px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:8px;color:#888;">2</div>
+            <div style="width:20px;height:20px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:8px;color:#888;">3</div>
+          </div>
+        </div>
+
+        <!-- Step 1: Placement diagram -->
+        <div style="background:#1a1a2e;margin:0 14px;border-radius:12px;padding:14px;text-align:center;margin-bottom:12px;">
+          <!-- Wall + phone diagram (SVG) -->
+          <svg width="160" height="110" viewBox="0 0 160 110">
+            <!-- Wall -->
+            <rect x="10" y="5" width="8" height="100" fill="#333" rx="2"/>
+            <!-- Books stack -->
+            <rect x="18" y="75" width="30" height="8" rx="2" fill="#5B7FA8"/>
+            <rect x="18" y="68" width="30" height="8" rx="2" fill="#6B8E5A"/>
+            <rect x="18" y="61" width="30" height="8" rx="2" fill="#8B6F47"/>
+            <!-- Table -->
+            <rect x="10" y="83" width="50" height="5" rx="2" fill="#c8b89a"/>
+            <!-- Phone leaning on books -->
+            <rect x="30" y="30" width="18" height="32" rx="4" fill="#222" stroke="#555" stroke-width="1.5"/>
+            <rect x="32" y="33" width="14" height="24" rx="2" fill="#1a2a3a"/>
+            <circle cx="39" cy="31" r="1.5" fill="#444"/>
+            <!-- Arrow showing height -->
+            <line x1="58" y1="30" x2="58" y2="88" stroke="#00ff88" stroke-width="1" stroke-dasharray="2,2"/>
+            <text x="62" y="62" font-size="7" fill="#00ff88">~4ft</text>
+            <!-- Person standing far -->
+            <circle cx="130" cy="30" r="10" fill="#4a6fa5" opacity="0.8"/>
+            <rect x="124" y="40" width="12" height="30" rx="4" fill="#4a6fa5" opacity="0.8"/>
+            <line x1="124" y1="45" x2="116" y2="60" stroke="#4a6fa5" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+            <line x1="136" y1="45" x2="144" y2="60" stroke="#4a6fa5" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+            <rect x="126" y="70" width="6" height="25" rx="3" fill="#4a6fa5" opacity="0.8"/>
+            <rect x="134" y="70" width="6" height="25" rx="3" fill="#4a6fa5" opacity="0.8"/>
+            <!-- Distance arrow -->
+            <line x1="55" y1="100" x2="122" y2="100" stroke="#5b8db8" stroke-width="1.5" marker-end="url(#arr)"/>
+            <text x="82" y="108" font-size="7" fill="#5b8db8" text-anchor="middle">6–8 ft</text>
+          </svg>
+          <div style="font-size:8px;color:#888;margin-top:4px;">Prop at chest height · Stand 6–8 ft away</div>
+        </div>
+
+        <div style="padding:0 14px;">
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+            <div style="display:flex;gap:8px;align-items:flex-start;background:#1a1a1a;border-radius:8px;padding:8px;">
+              <div style="width:18px;height:18px;background:#1a9e5c;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0;">✓</div>
+              <div style="font-size:8px;color:#ccc;line-height:1.4;">Rear camera facing you — portrait orientation</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-start;background:#1a1a1a;border-radius:8px;padding:8px;">
+              <div style="width:18px;height:18px;background:#1a9e5c;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0;">✓</div>
+              <div style="font-size:8px;color:#ccc;line-height:1.4;">Chest height (~4 ft from floor)</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-start;background:#1a1a1a;border-radius:8px;padding:8px;">
+              <div style="width:18px;height:18px;background:#1a9e5c;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0;">✓</div>
+              <div style="font-size:8px;color:#ccc;line-height:1.4;">Plain wall behind you · Good lighting from front</div>
+            </div>
+          </div>
+          <button class="btn btn-green" style="width:100%;padding:9px;font-size:10px;">Phone is placed → Next</button>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">NEW B — Prop Mode Guide</div>
+    <div class="screen-num">Step 1: Placement + diagram</div>
+  </div>
+
+  <!-- NEW Screen C: Buddy Mode Alignment Guide -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div class="header"><div class="header-back">←</div><div><div class="header-title">👥 Buddy Mode Guide</div><div class="header-sub">Show this screen to your buddy</div></div></div>
+        <div style="padding:10px 14px;">
+
+          <!-- Show to buddy banner -->
+          <div style="background:#fff3cd;border:1.5px solid #f6c90e;border-radius:10px;padding:8px 10px;margin-bottom:10px;display:flex;gap:8px;align-items:center;">
+            <div style="font-size:18px;">👉</div>
+            <div style="font-size:9px;color:#555;font-weight:600;">Hand your phone to your buddy and ask them to follow these steps</div>
+          </div>
+
+          <!-- 4 instruction cards -->
+          <div style="display:flex;flex-direction:column;gap:8px;">
+
+            <div style="display:flex;gap:10px;align-items:flex-start;background:#f8f8f8;border-radius:10px;padding:10px;">
+              <div style="width:28px;height:28px;background:#111;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0;">📏</div>
+              <div>
+                <div style="font-size:9px;font-weight:700;color:#111;margin-bottom:2px;">Distance</div>
+                <div style="font-size:8px;color:#555;line-height:1.4;">Stand so their full body fits inside the green frame on screen. Roughly 6–8 feet away.</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;align-items:flex-start;background:#f8f8f8;border-radius:10px;padding:10px;">
+              <div style="width:28px;height:28px;background:#111;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0;">📐</div>
+              <div>
+                <div style="font-size:9px;font-weight:700;color:#111;margin-bottom:2px;">Height</div>
+                <div style="font-size:8px;color:#555;line-height:1.4;">Hold phone at <strong>their shoulder height</strong>. Not higher, not lower. Camera pointing straight at them.</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;align-items:flex-start;background:#f8f8f8;border-radius:10px;padding:10px;">
+              <div style="width:28px;height:28px;background:#111;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0;">📱</div>
+              <div>
+                <div style="font-size:9px;font-weight:700;color:#111;margin-bottom:2px;">Keep Straight</div>
+                <div style="font-size:8px;color:#555;line-height:1.4;">Hold phone perfectly vertical. Don't tilt. Both hands steady — app will auto-capture.</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;align-items:flex-start;background:#f0fff4;border-radius:10px;padding:10px;border:1px solid #c6f6d5;">
+              <div style="width:28px;height:28px;background:#1a9e5c;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0;">✓</div>
+              <div>
+                <div style="font-size:9px;font-weight:700;color:#1a9e5c;margin-bottom:2px;">Same every time</div>
+                <div style="font-size:8px;color:#555;line-height:1.4;">Try to stand in the same spot each scan session for consistent results.</div>
+              </div>
+            </div>
+
+          </div>
+          <button class="btn btn-primary" style="margin-top:10px;padding:9px;font-size:10px;">Buddy is ready → Start Scan</button>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">NEW C — Buddy Mode Guide</div>
+    <div class="screen-num">Shown to buddy — distance, height, angle</div>
+  </div>
+
+  <!-- NEW Screen D: Mirror Mode Alignment Guide -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div class="header"><div class="header-back">←</div><div><div class="header-title">🪞 Mirror Mode Setup</div><div class="header-sub">Hold phone facing a full-length mirror</div></div></div>
+        <div style="padding:12px 14px;">
+
+          <!-- Accuracy warning -->
+          <div style="background:#fff3e0;border:1.5px solid #fbd38d;border-radius:10px;padding:8px 10px;margin-bottom:10px;display:flex;gap:8px;align-items:flex-start;">
+            <div style="font-size:14px;flex-shrink:0;">⚠️</div>
+            <div style="font-size:8px;color:#7d4e00;line-height:1.4;"><strong>Less accurate than Prop or Buddy mode.</strong> Use only when a flat surface or buddy isn't available.</div>
+          </div>
+
+          <!-- Top view diagram -->
+          <div style="background:#f8f8f8;border-radius:12px;padding:12px;text-align:center;margin-bottom:10px;">
+            <div style="font-size:8px;color:#888;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.08em;">Top View</div>
+            <svg width="160" height="70" viewBox="0 0 160 70">
+              <!-- Mirror on right -->
+              <rect x="140" y="5" width="8" height="60" fill="#b0d4f1" rx="2" stroke="#5b8db8" stroke-width="1.5"/>
+              <text x="144" y="72" font-size="7" fill="#5b8db8" text-anchor="middle">Mirror</text>
+              <!-- Person in middle -->
+              <circle cx="60" cy="35" r="12" fill="#4a6fa5" opacity="0.7"/>
+              <text x="60" y="39" font-size="8" fill="#fff" text-anchor="middle">You</text>
+              <!-- Phone held at chest -->
+              <rect x="73" y="30" width="12" height="20" rx="3" fill="#222" stroke="#555" stroke-width="1"/>
+              <rect x="75" y="32" width="8" height="14" rx="1" fill="#1a2a3a"/>
+              <!-- Arrows: camera ray to mirror, reflection back -->
+              <line x1="85" y1="38" x2="140" y2="38" stroke="#00ff88" stroke-width="1.5" stroke-dasharray="3,2"/>
+              <line x1="140" y1="42" x2="75" y2="42" stroke="#00ff88" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.6"/>
+              <text x="112" y="34" font-size="7" fill="#00ff88">camera</text>
+              <text x="112" y="50" font-size="7" fill="#00ff88" opacity="0.7">reflection</text>
+            </svg>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <div style="width:16px;height:16px;background:#111;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0;">1</div>
+              <div style="font-size:8px;color:#333;line-height:1.4;">Stand in front of a full-length mirror — your feet must be visible</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <div style="width:16px;height:16px;background:#111;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0;">2</div>
+              <div style="font-size:8px;color:#333;line-height:1.4;">Hold phone at chest height, front camera pointing at the mirror</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <div style="width:16px;height:16px;background:#111;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0;">3</div>
+              <div style="font-size:8px;color:#333;line-height:1.4;">Step back until full body reflection is visible — then hold still</div>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="width:100%;padding:9px;font-size:10px;">Ready → Start Mirror Scan</button>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">NEW D — Mirror Mode Guide</div>
+    <div class="screen-num">Top-view diagram + accuracy warning</div>
+  </div>
+
+  <!-- NEW Screen E: Real-time Alignment Feedback -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar" style="background:#000;"><span class="status-time" style="color:#fff;">9:41</span><div class="status-icons"><span style="color:#fff;">🔋</span></div></div>
+        <div style="background:#0d0d1a;height:300px;position:relative;display:flex;align-items:center;justify-content:center;">
+          <!-- Person silhouette -->
+          <div style="position:absolute;font-size:90px;opacity:0.15;color:#fff;">🧍</div>
+          <!-- Guide frame — orange (not perfect yet) -->
+          <div style="width:100px;height:195px;border:2px solid rgba(255,165,0,0.8);border-radius:10px;position:relative;">
+            <div style="position:absolute;top:-1px;left:-1px;width:14px;height:14px;border-top:3px solid orange;border-left:3px solid orange;"></div>
+            <div style="position:absolute;top:-1px;right:-1px;width:14px;height:14px;border-top:3px solid orange;border-right:3px solid orange;"></div>
+            <div style="position:absolute;bottom:-1px;left:-1px;width:14px;height:14px;border-bottom:3px solid orange;border-left:3px solid orange;"></div>
+            <div style="position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-bottom:3px solid orange;border-right:3px solid orange;"></div>
+          </div>
+          <!-- Dynamic voice prompt -->
+          <div style="position:absolute;top:10px;left:10px;right:10px;background:rgba(0,0,0,0.75);border-radius:8px;padding:7px 10px;text-align:center;">
+            <div style="font-size:10px;color:orange;font-weight:700;">🔊 Move back a little</div>
+          </div>
+          <!-- Alignment checklist overlay (bottom) -->
+          <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.8);padding:8px 12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+              <div style="display:flex;gap:4px;align-items:center;"><div style="width:8px;height:8px;border-radius:50%;background:#1a9e5c;flex-shrink:0;"></div><div style="font-size:7px;color:#ccc;">Full body visible</div></div>
+              <div style="display:flex;gap:4px;align-items:center;"><div style="width:8px;height:8px;border-radius:50%;background:orange;flex-shrink:0;"></div><div style="font-size:7px;color:#ccc;">Distance</div></div>
+              <div style="display:flex;gap:4px;align-items:center;"><div style="width:8px;height:8px;border-radius:50%;background:#1a9e5c;flex-shrink:0;"></div><div style="font-size:7px;color:#ccc;">Centred</div></div>
+              <div style="display:flex;gap:4px;align-items:center;"><div style="width:8px;height:8px;border-radius:50%;background:#1a9e5c;flex-shrink:0;"></div><div style="font-size:7px;color:#ccc;">Lighting OK</div></div>
+            </div>
+          </div>
+        </div>
+        <!-- State: not all green yet -->
+        <div style="background:#111;padding:8px 14px;text-align:center;">
+          <div style="font-size:8px;color:#888;">Waiting for perfect alignment · Auto-captures when ready</div>
+          <div style="display:flex;gap:8px;margin-top:6px;justify-content:center;">
+            <button style="background:rgba(255,255,255,0.1);color:#fff;border:none;padding:5px 12px;border-radius:8px;font-size:8px;">Discard</button>
+            <button style="background:rgba(255,255,255,0.1);color:#fff;border:none;padding:5px 12px;border-radius:8px;font-size:8px;">Retake</button>
+          </div>
+        </div>
+        <!-- Second state: all green -->
+        <div style="background:#0d1a0d;padding:8px 14px;text-align:center;border-top:1px solid #1a3a1a;">
+          <div style="font-size:9px;color:#00ff88;font-weight:700;">✓ Perfect alignment — capturing in 3s</div>
+          <div style="background:#1a3a1a;border-radius:4px;height:4px;margin-top:4px;overflow:hidden;"><div style="background:#00ff88;height:100%;width:60%;border-radius:4px;"></div></div>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">NEW E — Live Alignment Feedback</div>
+    <div class="screen-num">Dynamic prompts · checklist · auto-capture</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<div class="section-title">Scan Flow</div>
+<div class="screens-row">
+
+  <!-- Screen 9: Placement Guide -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar" style="background:#111;"><span class="status-time" style="color:#fff;">9:41</span><div class="status-icons"><span style="color:#fff;">🔋</span></div></div>
+        <div style="background:#111;padding:10px 14px;display:flex;align-items:center;gap:8px;">
+          <div style="color:#888;font-size:18px;">←</div>
+          <div><div style="font-size:11px;font-weight:700;color:#fff;">Set Up Your Phone</div><div style="font-size:8px;color:#888;">Step 1 of 3</div></div>
+        </div>
+        <div style="background:#111;padding:14px;text-align:center;">
+          <div style="background:#1a1a2e;border-radius:14px;padding:20px;margin-bottom:14px;">
+            <div style="font-size:48px;margin-bottom:8px;">📱</div>
+            <div style="font-size:64px;position:relative;display:inline-block;">🧱<div style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);font-size:12px;">📱</div></div>
+            <div style="font-size:9px;color:#888;margin-top:12px;">Prop against wall or books</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;text-align:left;">
+            <div style="display:flex;gap:8px;align-items:flex-start;"><div style="width:16px;height:16px;background:#00ff88;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0;">1</div><div style="font-size:9px;color:#ccc;">Prop your phone against a wall at chest height (~4 feet)</div></div>
+            <div style="display:flex;gap:8px;align-items:flex-start;"><div style="width:16px;height:16px;background:#00ff88;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0;">2</div><div style="font-size:9px;color:#ccc;">Stand 6–8 feet away facing the phone</div></div>
+            <div style="display:flex;gap:8px;align-items:flex-start;"><div style="width:16px;height:16px;background:#00ff88;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0;">3</div><div style="font-size:9px;color:#ccc;">Wear fitted clothing for best accuracy</div></div>
+          </div>
+        </div>
+        <div style="padding:14px;background:#111;">
+          <button class="btn btn-green">I've placed my phone →</button>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">09 — Placement Guide</div>
+    <div class="screen-num">Before scan instructions</div>
+  </div>
+
+  <!-- Screen 10: Live Scan - Front -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar" style="background:#000;"><span class="status-time" style="color:#fff;">9:41</span><div class="status-icons"><span style="color:#fff;">🔋</span></div></div>
+        <div style="background:#0d0d1a;height:340px;position:relative;display:flex;align-items:center;justify-content:center;">
+          <!-- Person silhouette -->
+          <div style="position:absolute;font-size:100px;opacity:0.15;color:#fff;">🧍</div>
+          <!-- Guide frame -->
+          <div style="width:100px;height:200px;border:2px solid rgba(0,255,136,0.7);border-radius:10px;position:relative;">
+            <div style="position:absolute;top:-1px;left:-1px;width:14px;height:14px;border-top:3px solid #00ff88;border-left:3px solid #00ff88;"></div>
+            <div style="position:absolute;top:-1px;right:-1px;width:14px;height:14px;border-top:3px solid #00ff88;border-right:3px solid #00ff88;"></div>
+            <div style="position:absolute;bottom:-1px;left:-1px;width:14px;height:14px;border-bottom:3px solid #00ff88;border-left:3px solid #00ff88;"></div>
+            <div style="position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-bottom:3px solid #00ff88;border-right:3px solid #00ff88;"></div>
+            <!-- Landmark dots -->
+            <div style="position:absolute;top:12%;left:50%;transform:translateX(-50%);width:6px;height:6px;background:#00ff88;border-radius:50%;"></div>
+            <div style="position:absolute;top:26%;left:20%;width:6px;height:6px;background:#00ff88;border-radius:50%;"></div>
+            <div style="position:absolute;top:26%;right:20%;width:6px;height:6px;background:#00ff88;border-radius:50%;"></div>
+            <div style="position:absolute;top:55%;left:24%;width:5px;height:5px;background:#00ff88;border-radius:50%;"></div>
+            <div style="position:absolute;top:55%;right:24%;width:5px;height:5px;background:#00ff88;border-radius:50%;"></div>
+            <div style="position:absolute;top:78%;left:34%;width:5px;height:5px;background:#00ff88;border-radius:50%;"></div>
+            <div style="position:absolute;top:78%;right:34%;width:5px;height:5px;background:#00ff88;border-radius:50%;"></div>
+          </div>
+          <!-- Voice prompt -->
+          <div style="position:absolute;top:10px;left:10px;right:10px;background:rgba(0,0,0,0.6);border-radius:8px;padding:6px 10px;text-align:center;font-size:9px;color:#00ff88;font-weight:600;">🔊 Perfect — hold still</div>
+          <!-- Bottom UI -->
+          <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);padding:10px 14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <button style="background:rgba(255,255,255,0.15);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:9px;">Discard</button>
+              <div style="text-align:center;"><div style="font-size:18px;font-weight:800;color:#00ff88;">3</div><div style="font-size:8px;color:#888;">sec</div></div>
+              <button style="background:rgba(255,255,255,0.15);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:9px;">Retake</button>
+            </div>
+            <div style="text-align:center;margin-top:6px;"><span style="font-size:8px;color:#aaa;">📍 Front scan · 1 of 2</span></div>
+          </div>
+        </div>
+        <div style="background:#111;padding:8px 14px;display:flex;gap:8px;align-items:center;">
+          <div style="flex:1;background:#1a9e5c;height:3px;border-radius:2px;"></div>
+          <div style="flex:1;background:#333;height:3px;border-radius:2px;"></div>
+          <div style="font-size:8px;color:#888;">Front → Side</div>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">10 — Live Scan (Front)</div>
+    <div class="screen-num">AR overlay + voice guide</div>
+  </div>
+
+  <!-- Screen 11: Processing -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:400px;padding:20px;">
+          <div style="width:70px;height:70px;border-radius:50%;background:#f0f0f0;border:4px solid #111;border-top-color:transparent;margin-bottom:20px;animation:spin 1s linear infinite;display:flex;align-items:center;justify-content:center;font-size:28px;">📐</div>
+          <div style="font-size:13px;font-weight:800;color:#111;margin-bottom:6px;">Analysing...</div>
+          <div style="font-size:9px;color:#888;text-align:center;margin-bottom:20px;">Calculating your measurements from front and side scans</div>
+          <div style="width:100%;">
+            <div style="font-size:8px;color:#888;margin-bottom:4px;display:flex;justify-content:space-between;"><span>Processing scans</span><span>78%</span></div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:78%;"></div></div>
+          </div>
+          <div style="margin-top:20px;display:flex;flex-direction:column;gap:6px;width:100%;">
+            <div style="display:flex;gap:8px;align-items:center;"><div style="width:16px;height:16px;background:#1a9e5c;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;">✓</div><div style="font-size:9px;color:#555;">Landmark detection complete</div></div>
+            <div style="display:flex;gap:8px;align-items:center;"><div style="width:16px;height:16px;background:#1a9e5c;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;">✓</div><div style="font-size:9px;color:#555;">Depth estimation complete</div></div>
+            <div style="display:flex;gap:8px;align-items:center;"><div style="width:16px;height:16px;background:#e0e0e0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:9px;">•</div><div style="font-size:9px;color:#aaa;">Calculating measurements...</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">11 — Processing</div>
+    <div class="screen-num">Scan analysis in progress</div>
+  </div>
+
+  <!-- Screen 12: Results -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div class="header"><div><div class="header-title">Scan Results</div><div class="header-sub">Today, 15 Jan 2025</div></div></div>
+        <div style="padding:10px 14px;">
+          <div class="measurement-row"><span class="measurement-label">Shoulders</span><div style="display:flex;align-items:center;gap:6px;"><span class="measurement-value">44.2 cm</span><span class="measurement-delta delta-up">+0.8</span></div></div>
+          <div class="measurement-row"><span class="measurement-label">Chest</span><div style="display:flex;align-items:center;gap:6px;"><span class="measurement-value">96.1 cm</span><span class="measurement-delta delta-up">+1.2</span></div></div>
+          <div class="measurement-row"><span class="measurement-label">Waist</span><div style="display:flex;align-items:center;gap:6px;"><span class="measurement-value">82.4 cm</span><span class="measurement-delta delta-down">-1.8</span></div></div>
+          <div class="measurement-row"><span class="measurement-label">Hips</span><div style="display:flex;align-items:center;gap:6px;"><span class="measurement-value">98.2 cm</span><span class="measurement-delta delta-down">-0.5</span></div></div>
+          <div class="measurement-row"><span class="measurement-label">Thighs</span><span class="measurement-value">54.6 cm</span></div>
+          <div class="measurement-row"><span class="measurement-label">Biceps</span><div style="display:flex;align-items:center;gap:6px;"><span class="measurement-value">34.1 cm</span><span class="measurement-delta delta-up">+1.4</span></div></div>
+          <div class="measurement-row"><span class="measurement-label">Inseam</span><span class="measurement-value">78.3 cm</span></div>
+          <div class="measurement-row"><span class="measurement-label">BMI</span><span class="measurement-value">22.4</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;">
+            <button class="btn btn-secondary btn-sm" style="width:100%;padding:9px;font-size:9px;">🔄 Retake Scan</button>
+            <button class="btn btn-primary btn-sm" style="width:100%;padding:9px;font-size:9px;">Save ✓</button>
+          </div>
+          <button class="btn btn-secondary" style="margin-top:6px;font-size:9px;padding:9px;">📤 Share / Download</button>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">12 — Scan Results</div>
+    <div class="screen-num">Measurements + delta</div>
+  </div>
+
+  <!-- Screen 13: Share Options -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen" style="position:relative;">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div style="padding:10px 14px;opacity:0.3;filter:blur(1px);">
+          <div class="measurement-row"><span class="measurement-label">Waist</span><span class="measurement-value">82.4 cm</span></div>
+        </div>
+        <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;">
+          <div style="background:#fff;border-radius:20px 20px 0 0;padding:16px;width:100%;">
+            <div style="width:36px;height:4px;background:#e0e0e0;border-radius:2px;margin:0 auto 12px;"></div>
+            <div style="font-size:11px;font-weight:700;color:#111;margin-bottom:4px;">Share Results</div>
+            <div style="font-size:8px;color:#888;margin-bottom:12px;">Choose what to share</div>
+            <div class="share-option"><div class="share-icon" style="background:#e8f0ff;">📊</div><div><div class="share-text">Measurements Card</div><div class="share-sub">Numbers only, no body image</div></div><button class="btn btn-outline btn-sm">Share</button></div>
+            <div class="share-option"><div class="share-icon" style="background:#f0fff4;">🧍</div><div><div class="share-text">Silhouette + Measurements</div><div class="share-sub">Body outline, no face shown</div></div><button class="btn btn-outline btn-sm">Share</button></div>
+            <div class="share-option"><div class="share-icon" style="background:#fff3e0;">📸</div><div><div class="share-text">Full Photo</div><div class="share-sub">Includes face — extra consent</div></div><button class="btn btn-outline btn-sm">Share</button></div>
+            <div class="share-option" style="border:none;"><div class="share-icon" style="background:#f5f5f5;">⬇️</div><div><div class="share-text">Download Image</div><div class="share-sub">Saved to your phone · deleted from server in 24h</div></div><button class="btn btn-outline btn-sm">Save</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">13 — Share Options</div>
+    <div class="screen-num">Card / silhouette / full photo</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<div class="section-title">Progress Tracking</div>
+<div class="screens-row">
+
+  <!-- Screen 14: Progress Overview -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div class="header"><div><div class="header-title">My Progress</div><div class="header-sub">Since Jan 15 · 3 scans</div></div></div>
+        <div style="padding:10px 14px 0;">
+          <div style="background:#f0fff4;border:1px solid #c6f6d5;border-radius:12px;padding:10px;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
+            <div style="font-size:24px;">🎉</div>
+            <div><div style="font-size:10px;font-weight:700;color:#1a9e5c;">Great progress!</div><div style="font-size:8px;color:#555;">Your waist is down 1.8cm this month</div></div>
+          </div>
+          <div style="font-size:8px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Key Changes</div>
+          <div class="measurement-row"><span class="measurement-label">Waist</span><div style="display:flex;align-items:center;gap:6px;"><span class="measurement-value">82.4</span><span class="measurement-delta delta-down">↓ 1.8cm</span></div></div>
+          <div class="measurement-row"><span class="measurement-label">Chest</span><div style="display:flex;align-items:center;gap:6px;"><span class="measurement-value">96.1</span><span class="measurement-delta delta-up">↑ 2.1cm</span></div></div>
+          <div class="measurement-row"><span class="measurement-label">Biceps</span><div style="display:flex;align-items:center;gap:6px;"><span class="measurement-value">34.1</span><span class="measurement-delta delta-up">↑ 1.4cm</span></div></div>
+          <div style="display:flex;gap:6px;margin-top:10px;">
+            <button class="btn btn-secondary btn-sm" style="flex:1;padding:8px;font-size:9px;">📈 Graphs</button>
+            <button class="btn btn-secondary btn-sm" style="flex:1;padding:8px;font-size:9px;">⟺ Compare</button>
+            <button class="btn btn-secondary btn-sm" style="flex:1;padding:8px;font-size:9px;">📋 History</button>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+          <div class="nav-item"><div class="nav-icon">📷</div><div class="nav-label">Scan</div></div>
+          <div class="nav-item active"><div class="nav-icon">📊</div><div class="nav-label">Progress</div></div>
+          <div class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">14 — Progress Overview</div>
+    <div class="screen-num">Summary + key changes</div>
+  </div>
+
+  <!-- Screen 15: Progress Graph -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div class="header"><div class="header-back">←</div><div><div class="header-title">Waist Progress</div><div class="header-sub">Last 90 days</div></div></div>
+        <div style="padding:10px 14px;">
+          <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;">
+            <button class="btn btn-primary btn-sm">Waist</button>
+            <button class="btn btn-secondary btn-sm">Chest</button>
+            <button class="btn btn-secondary btn-sm">Biceps</button>
+            <button class="btn btn-secondary btn-sm">Hips</button>
+          </div>
+          <!-- SVG chart -->
+          <div style="background:#f8f8f8;border-radius:12px;padding:12px;margin-bottom:10px;">
+            <svg width="170" height="80" viewBox="0 0 170 80">
+              <polyline points="10,60 50,55 90,48 130,42 170,38" fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="10,60 50,55 90,48 130,42 170,38" fill="none" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+              <circle cx="10" cy="60" r="4" fill="#111"/>
+              <circle cx="50" cy="55" r="4" fill="#111"/>
+              <circle cx="90" cy="48" r="4" fill="#111"/>
+              <circle cx="130" cy="42" r="4" fill="#111"/>
+              <circle cx="170" cy="38" r="5" fill="#1a9e5c" stroke="white" stroke-width="2"/>
+              <text x="10" y="74" font-size="7" fill="#aaa" text-anchor="middle">Jan</text>
+              <text x="90" y="74" font-size="7" fill="#aaa" text-anchor="middle">Feb</text>
+              <text x="170" y="74" font-size="7" fill="#aaa" text-anchor="middle">Mar</text>
+            </svg>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+            <div style="text-align:center;"><div style="font-size:8px;color:#888;">Start</div><div style="font-size:12px;font-weight:800;color:#111;">84.2</div><div style="font-size:7px;color:#aaa;">cm</div></div>
+            <div style="text-align:center;"><div style="font-size:8px;color:#888;">Current</div><div style="font-size:12px;font-weight:800;color:#1a9e5c;">82.4</div><div style="font-size:7px;color:#aaa;">cm</div></div>
+            <div style="text-align:center;"><div style="font-size:8px;color:#888;">Change</div><div style="font-size:12px;font-weight:800;color:#1a9e5c;">-1.8</div><div style="font-size:7px;color:#aaa;">cm</div></div>
+          </div>
+          <div style="font-size:8px;font-weight:700;color:#555;margin-bottom:6px;">Scan History</div>
+          <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-line"></div><div><div class="timeline-content"><strong>84.2cm</strong> — First scan</div><div class="timeline-date">15 Jan 2025</div></div></div>
+          <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-line"></div><div><div class="timeline-content"><strong>83.1cm</strong> — Down 1.1cm</div><div class="timeline-date">1 Feb 2025</div></div></div>
+          <div class="timeline-item"><div class="timeline-dot"></div><div><div class="timeline-content"><strong>82.4cm</strong> — Down 1.8cm total</div><div class="timeline-date">15 Feb 2025</div></div></div>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">15 — Progress Graph</div>
+    <div class="screen-num">Per-measurement trend</div>
+  </div>
+
+  <!-- Screen 16: Side by Side Compare -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div class="header"><div class="header-back">←</div><div><div class="header-title">Before vs Now</div><div class="header-sub">Side by side comparison</div></div></div>
+        <div style="padding:10px 14px;">
+          <div class="compare-grid" style="margin-bottom:10px;">
+            <div class="compare-col">
+              <div class="compare-label">First Scan</div>
+              <div class="compare-silhouette">🧍</div>
+              <div class="compare-date">15 Jan 2025</div>
+            </div>
+            <div class="compare-col" style="background:#f0fff4;border:1px solid #c6f6d5;">
+              <div class="compare-label" style="color:#1a9e5c;">Latest Scan</div>
+              <div class="compare-silhouette" style="opacity:0.7;">🧍</div>
+              <div class="compare-date">15 Feb 2025</div>
+            </div>
+          </div>
+          <div style="font-size:8px;font-weight:700;color:#555;margin-bottom:6px;">Changes</div>
+          <div class="measurement-row"><span class="measurement-label">Waist</span><div style="display:flex;gap:8px;"><span style="font-size:9px;color:#888;">84.2</span><span style="font-size:9px;color:#aaa;">→</span><span style="font-size:10px;font-weight:700;color:#1a9e5c;">82.4 ↓1.8</span></div></div>
+          <div class="measurement-row"><span class="measurement-label">Chest</span><div style="display:flex;gap:8px;"><span style="font-size:9px;color:#888;">94.0</span><span style="font-size:9px;color:#aaa;">→</span><span style="font-size:10px;font-weight:700;color:#1a9e5c;">96.1 ↑2.1</span></div></div>
+          <div class="measurement-row"><span class="measurement-label">Biceps</span><div style="display:flex;gap:8px;"><span style="font-size:9px;color:#888;">32.7</span><span style="font-size:9px;color:#aaa;">→</span><span style="font-size:10px;font-weight:700;color:#1a9e5c;">34.1 ↑1.4</span></div></div>
+          <div class="measurement-row"><span class="measurement-label">Hips</span><div style="display:flex;gap:8px;"><span style="font-size:9px;color:#888;">98.7</span><span style="font-size:9px;color:#aaa;">→</span><span style="font-size:10px;font-weight:700;color:#1a9e5c;">98.2 ↓0.5</span></div></div>
+          <button class="btn btn-secondary" style="margin-top:10px;font-size:9px;">📤 Share Transformation</button>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">16 — Before vs Now</div>
+    <div class="screen-num">Side by side comparison</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<div class="section-title">Notifications</div>
+<div class="screens-row">
+
+  <!-- Screen 17: Notifications -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>🔋</span></div></div>
+        <div class="header"><div><div class="header-title">Notifications</div></div></div>
+        <div style="padding:10px 14px;">
+          <div class="notification-item">
+            <div class="notif-icon" style="background:#f0fff4;">🎉</div>
+            <div style="flex:1;"><div class="notif-title">Waist down 2cm this month!</div><div class="notif-body">You've lost 2cm off your waist. Keep it up — scan again to track more progress.</div><div class="notif-time">2 hours ago</div></div>
+          </div>
+          <div class="notification-item">
+            <div class="notif-icon" style="background:#fff3e0;">⏰</div>
+            <div style="flex:1;"><div class="notif-title">Plan expires in 7 days</div><div class="notif-body">Your 3-month plan at IronClub ends on 15 Apr. Ask your gym to renew.</div><div class="notif-time">Yesterday</div></div>
+          </div>
+          <div class="notification-item">
+            <div class="notif-icon" style="background:#e8f0ff;">📷</div>
+            <div style="flex:1;"><div class="notif-title">Time for a scan!</div><div class="notif-body">It's been 3 weeks since your last body scan. Visit your gym to check progress.</div><div class="notif-time">3 days ago</div></div>
+          </div>
+          <div class="notification-item" style="border:none;">
+            <div class="notif-icon" style="background:#f8f8f8;">✅</div>
+            <div style="flex:1;"><div class="notif-title">Payment confirmed</div><div class="notif-body">₹2,500 received for 3-month plan. Invoice ready to download.</div><div class="notif-time">15 Jan 2025</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="screen-label">17 — Notifications</div>
+    <div class="screen-num">Reminders + milestones</div>
+  </div>
+
+</div>
+
+<div style="margin-top:48px;padding:20px;background:#111;border-radius:14px;color:#fff;">
+  <div style="font-size:11px;font-weight:700;margin-bottom:6px;">Mobile Wireframes Complete — 17 Screens</div>
+  <div style="font-size:9px;color:#888;line-height:1.6;">Covers: QR Landing · OTP · Profile Setup · Member Home · Invoice · Self Consent · Trainer Consent · Share Consent · Placement Guide · Live Scan · Processing · Results · Share Options · Progress Overview · Progress Graph · Before vs Now · Notifications</div>
+  <div style="margin-top:10px;font-size:9px;color:#888;">Open <strong style="color:#fff;">wireframes-dashboard.html</strong> for the Gym Owner web dashboard screens →</div>
+</div>
+
+</body>
+</html>
