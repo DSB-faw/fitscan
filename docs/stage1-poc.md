@@ -34,21 +34,24 @@ No npm, no build step. Pure HTML + vanilla JS. Opens directly in any browser.
 
 ---
 
-## User Flow (PoC Only)
+## User Flow (PoC — Buddy Mode)
 
 ```
-Open index.html in phone browser
-→ Enter height (cm) — used for pixel calibration
+Open index.html on phone browser
+→ Enter subject's height (cm) — used for pixel calibration
+→ Pre-scan checklist shown (background, lighting, clothing, footwear)
+→ "Show buddy instructions" card — hand phone to buddy to read
 → "Start Front Scan" button
-→ Live camera view with AR guide frame + voice prompts
-→ Quality checks run in real-time (all 5 must pass)
-→ Auto-captures 15 frames when alignment is perfect
-→ "Turn to your right" — side scan
-→ Side scan captured (same quality check process)
-→ Processing (landmark extraction + circumference prediction)
+→ Buddy holds phone, points at subject
+→ Live camera view with AR guide frame + real-time quality checks
+→ Voice prompts guide buddy (distance, height, tilt, lighting)
+→ All 5 checks pass → auto-captures 15 frames
+→ Voice: "Front scan done. Subject turn to your right. Buddy stay in same spot."
+→ Side scan — same quality check + auto-capture process
+→ Processing screen (landmark extraction + circumference prediction)
 → Results screen — 8 measurements displayed
-→ "Compare with tape" input fields — enter real tape measurements
-→ Accuracy delta shown per measurement (e.g. Waist: ±1.2cm ✓)
+→ "Compare with tape" section — enter real tape measurements
+→ Accuracy delta shown per measurement (e.g. Waist: scan 82cm, tape 83cm → ±1cm ✓)
 ```
 
 ---
@@ -132,17 +135,64 @@ All via browser Text-to-Speech API (no external service needed):
 
 ---
 
-## Scan Modes in PoC
+## Scan Mode for Stage 1 — Buddy Mode
 
-Only Prop mode for Stage 1. Buddy and Mirror are added in Stage 2.
+Stage 1 uses **Buddy mode only**. Chosen over Prop for accuracy testing because the buddy can dynamically adjust position in real-time based on quality check feedback — distance, height, and tilt can all be corrected live before auto-capture fires.
 
-**Setup instructions shown on screen before scan:**
-- Lean phone against a wall or books at chest height (~4 feet)
-- Rear camera facing you
-- Stand 6–8 feet away
-- Plain background, light coming from in front of you
-- Wear fitted clothing (not loose)
-- Scan barefoot or note that shoes add ~2cm to height
+Prop and Mirror modes are added in Stage 2.
+
+### Why Buddy Over Prop for Stage 1
+
+| Factor | Prop | Buddy |
+|---|---|---|
+| Can adjust distance dynamically | No — fixed position | Yes — buddy steps forward/back |
+| Can adjust height dynamically | No | Yes — buddy raises/lowers phone |
+| Responds to quality check feedback | No | Yes — buddy sees screen + hears prompts |
+| Scan-to-scan consistency | Better | Slightly worse |
+| Best for accuracy testing (single scan) | Good | Better |
+
+For Stage 1 we are testing absolute accuracy against a tape measure (single scan). Consistency across sessions matters more in Stage 2.
+
+### Buddy Instructions Screen (shown before scan starts)
+
+A full-screen card is shown to hand to the buddy:
+
+```
+BUDDY INSTRUCTIONS — show this to the person holding the phone
+
+📏 Distance     Stand so their full body fills the green frame. ~6–8 feet.
+📐 Height       Hold phone at their shoulder height. Not higher, not lower.
+📱 Keep steady  Both hands. Phone vertical. Don't tilt.
+👁 Watch screen Green = good. Orange = adjust. Wait for auto-capture.
+🔁 Same spot    For the side scan, stay in the exact same spot — just rotate.
+```
+
+### Voice Prompts — Buddy-Aware Versions
+
+In Buddy mode, voice prompts address the **buddy** (holding the phone), not the subject:
+
+| Trigger | Message |
+|---|---|
+| Scan starts | "Buddy — hold the phone at their shoulder height, about 6 to 8 feet away." |
+| Body not fully visible | "Buddy — step back a little. Full body not visible." |
+| Too close | "Buddy — you're too close. Take two steps back." |
+| Too far | "Buddy — step a little closer." |
+| Off centre | "Buddy — move a little to your left." / "…to your right." |
+| Tilted | "Subject — stand straight. Keep shoulders level." |
+| Poor lighting | "Too dark. Move so the light is in front of the subject." |
+| All checks pass | "Perfect. Hold very still." |
+| Capturing | "Capturing now. Nobody move." |
+| Front done | "Front scan done. Subject — turn to your right. Buddy — stay in the same spot." |
+| Side done | "Side scan complete. Processing measurements." |
+| Done | "Done. Here are the measurements." |
+
+### Pre-scan Setup Checklist (shown on index screen)
+
+- Plain wall or background behind the subject
+- Light source facing the subject (not behind them)
+- Subject wears fitted clothing — not loose or baggy
+- Subject scans barefoot (or same footwear every time — shoes add ~2cm)
+- Buddy holds phone with both hands, portrait orientation, rear camera
 
 ---
 
