@@ -1,8 +1,23 @@
 # FitScan — Product Specification (MVP)
 
-## Overview
+## MVP Structure — Two Stages
 
-FitScan MVP is a web-based gym management platform with integrated body scanning. It is built as a Progressive Web App (PWA) — no app download required. Members access it by scanning a QR code placed in their gym.
+The MVP is split into two stages to de-risk the core technology before building the full product.
+
+| Stage | What | Goal | Timeline |
+|---|---|---|---|
+| **Stage 1 — Scan PoC** | Standalone scan page, no backend | Validate ±2cm accuracy on real bodies | 7–9 days |
+| **Stage 2 — Full Product** | PWA + backend + all 3 personas | Shippable gym management product | 6–10 weeks |
+
+Stage 2 only begins once Stage 1 passes: ≥7 of 10 real body scans within ±2cm on chest and waist.
+
+See [`stage1-poc.md`](stage1-poc.md) for the complete Stage 1 build plan and testing protocol.
+
+---
+
+## Overview (Stage 2)
+
+FitScan Stage 2 is a web-based gym management platform with integrated body scanning. It is built as a Progressive Web App (PWA) — no app download required. Members access it by scanning a QR code placed in their gym.
 
 ---
 

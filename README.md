@@ -21,7 +21,8 @@ fitscan/
 ├── README.md                        ← You are here
 │
 ├── docs/
-│   ├── product-spec.md              ← Full MVP product specification
+│   ├── stage1-poc.md                ← Stage 1 build plan: scan PoC, testing protocol
+│   ├── product-spec.md              ← Stage 2 full MVP spec (all personas, all flows)
 │   ├── market-analysis.md           ← India market research & competitor landscape
 │   ├── business-strategy.md         ← Business model, data play, phased roadmap
 │   ├── tech-stack.md                ← Technology decisions & architecture
@@ -130,12 +131,24 @@ Open the HTML files directly in any browser — no build step needed.
 
 ---
 
-## Status
+## Build Stages
+
+### Stage 1 — Scan PoC (current)
+Validate scan accuracy before building the product.
 
 - [x] Market research & competitor analysis
 - [x] Product spec (all 3 personas, all flows)
 - [x] Mobile wireframes (22 screens)
 - [x] Dashboard wireframes (10 screens)
-- [ ] MVP development (Next.js + FastAPI + MediaPipe)
+- [ ] Scan PoC (MediaPipe + calibration + quality checks + voice prompts)
+- [ ] Test on 10 real bodies — target ≥7/10 within ±2cm on chest and waist
+- [ ] **Gate: pass accuracy target → move to Stage 2**
+
+### Stage 2 — Full Product (after Stage 1 passes)
+- [ ] Next.js PWA + FastAPI backend + PostgreSQL
+- [ ] Gym owner dashboard (10 screens)
+- [ ] Member mobile flow (22 screens)
+- [ ] Trainer flow + consent system
+- [ ] OTP auth + payments + invoices
 - [ ] Beta with 3 gyms
 - [ ] First paying customer
