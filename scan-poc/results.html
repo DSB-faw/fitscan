@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>FitScan — Results</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f7; min-height: 100vh; padding: 0 0 60px;
+    }
+
+    .header {
+      background: #111; color: #fff;
+      padding: 52px 20px 20px;
+    }
+    .header h1 { font-size: 24px; font-weight: 700; }
+    .header-sub { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+    .subject-name { font-size: 14px; color: rgba(255,255,255,0.6); }
+    .quality-badge {
+      font-size: 12px; font-weight: 600;
+      background: rgba(255,255,255,0.12);
+      padding: 3px 10px; border-radius: 12px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .container { padding: 0 16px; margin-top: 16px; }
+
+    .section-title {
+      font-size: 11px; font-weight: 700; color: #888;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 10px; padding: 0 4px;
+    }
+
+    /* Measurements table */
+    .measurements-card {
+      background: #fff; border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      margin-bottom: 14px;
+    }
+
+    .table-header {
+      display: grid;
+      grid-template-columns: 1fr 64px 80px 54px;
+      padding: 10px 16px;
+      background: #f9f9f9;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .th {
+      font-size: 10px; font-weight: 700; color: #aaa;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .th.right { text-align: right; }
+
+    .measurement-row {
+      display: grid;
+      grid-template-columns: 1fr 64px 80px 54px;
+      align-items: center;
+      padding: 11px 16px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .measurement-row:last-child { border-bottom: none; }
+
+    .m-name { font-size: 14px; font-weight: 600; color: #111; }
+    .m-unit { font-size: 10px; color: #aaa; font-weight: 400; }
+
+    .m-scan {
+      font-size: 15px; font-weight: 700; color: #111;
+      text-align: right;
+    }
+
+    .m-tape-wrap { display: flex; justify-content: flex-end; }
+    .m-tape {
+      width: 72px; padding: 6px 8px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px; font-size: 14px;
+      text-align: right; color: #111;
+      background: #fafafa; outline: none;
+      -webkit-appearance: none;
+    }
+    .m-tape:focus { border-color: #111; background: #fff; }
+
+    .m-delta { text-align: right; font-size: 13px; font-weight: 600; color: #aaa; }
+    .m-delta.good { color: #1a9e5c; }
+    .m-delta.warn { color: #e67e22; }
+    .m-delta.bad  { color: #e53e3e; }
+
+    /* Quality score */
+    .quality-card {
+      background: #fff; border-radius: 16px;
+      padding: 16px; margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+    .quality-dots {
+      display: flex; gap: 6px; margin-top: 10px;
+    }
+    .qdot {
+      width: 12px; height: 12px; border-radius: 50%;
+    }
+    .qdot.filled { background: #1a9e5c; }
+    .qdot.empty  { background: #e0e0e0; }
+    .quality-text { font-size: 13px; color: #555; margin-top: 8px; }
+
+    /* Debug section */
+    .debug-card {
+      background: #fff; border-radius: 16px;
+      padding: 16px; margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+    .debug-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 6px; margin-top: 8px;
+    }
+    .debug-item { font-size: 11px; color: #888; }
+    .debug-item span { color: #111; font-weight: 600; }
+
+    /* Accuracy summary */
+    .summary-card {
+      background: #fff; border-radius: 16px;
+      padding: 16px; margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      display: none;
+    }
+    .summary-card.visible { display: block; }
+    .summary-stat {
+      display: flex; justify-content: space-between;
+      font-size: 14px; color: #333;
+      padding: 6px 0; border-bottom: 1px solid #f5f5f5;
+    }
+    .summary-stat:last-child { border-bottom: none; }
+    .summary-stat span { font-weight: 700; }
+    .pass-count { color: #1a9e5c; }
+    .fail-count { color: #e53e3e; }
+
+    /* Buttons */
+    .btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+    .btn {
+      width: 100%; padding: 15px;
+      border-radius: 14px; font-size: 15px; font-weight: 700;
+      cursor: pointer; border: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary { background: #111; color: #fff; }
+    .btn-secondary { background: #fff; color: #111; border: 1.5px solid #e0e0e0; }
+    .btn:active { opacity: 0.8; transform: scale(0.98); }
+
+    .note {
+      font-size: 11px; color: #aaa; text-align: center;
+      padding: 0 20px; margin-top: 8px; line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Scan Results</h1>
+  <div class="header-sub">
+    <div class="subject-name" id="subject-name-display">—</div>
+    <div class="quality-badge" id="quality-badge-header">Quality: —</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section-title">Measurements — enter tape values to see accuracy</div>
+
+  <div class="measurements-card">
+    <div class="table-header">
+      <div class="th">Measurement</div>
+      <div class="th right">Scan</div>
+      <div class="th right">Tape (cm)</div>
+      <div class="th right">Delta</div>
+    </div>
+    <div id="measurements-list"></div>
+  </div>
+
+  <!-- Accuracy summary — appears once tape values are entered -->
+  <div class="summary-card" id="summary-card">
+    <div class="section-title" style="margin-bottom:8px;">Accuracy Summary</div>
+    <div id="summary-rows"></div>
+    <div class="note" style="margin-top:10px;margin-bottom:0;">Pass = within ±2 cm. Primary target: chest and waist.</div>
+  </div>
+
+  <!-- Quality score -->
+  <div class="quality-card">
+    <div class="section-title" style="margin-bottom:0;">Scan Quality</div>
+    <div class="quality-dots" id="quality-dots"></div>
+    <div class="quality-text" id="quality-text">—</div>
+  </div>
+
+  <!-- Debug raw values -->
+  <div class="debug-card">
+    <div class="section-title" style="margin-bottom:0;">Debug — Raw Dimensions</div>
+    <div class="debug-grid" id="debug-grid"></div>
+    <div class="note" style="margin-top:8px;margin-bottom:0;">Front width + side depth fed into ellipse formula. Useful for tuning.</div>
+  </div>
+
+  <!-- Actions -->
+  <div class="btn-row">
+    <button class="btn btn-primary" id="btn-export">Export CSV</button>
+    <button class="btn btn-secondary" id="btn-again">Scan Another Person</button>
+  </div>
+
+</div>
+
+<script src="js/measurements.js"></script>
+<script>
+// ── Read session data ─────────────────────────────────────────────────────────
+const subjectName  = sessionStorage.getItem('subject_name') || 'Subject';
+const heightCm     = parseFloat(sessionStorage.getItem('height_cm'));
+const frontFrames  = JSON.parse(sessionStorage.getItem('front_frames') || '[]');
+const sideFrames   = JSON.parse(sessionStorage.getItem('side_frames')  || '[]');
+const imgW         = parseFloat(sessionStorage.getItem('img_width')  || 640);
+const imgH         = parseFloat(sessionStorage.getItem('img_height') || 480);
+
+if (!heightCm || frontFrames.length === 0 || sideFrames.length === 0) {
+  window.location.href = 'index.html';
+}
+
+// ── Compute measurements ──────────────────────────────────────────────────────
+const frontLm = Measurements.medianLandmarks(frontFrames);
+const sideLm  = Measurements.medianLandmarks(sideFrames);
+const M       = Measurements.compute(frontLm, sideLm, heightCm, imgW, imgH);
+
+// ── Measurement rows config ───────────────────────────────────────────────────
+const ROWS = [
+  { key: 'height',    label: 'Height',    unit: 'cm', primary: false },
+  { key: 'shoulders', label: 'Shoulders', unit: 'cm', primary: false },
+  { key: 'chest',     label: 'Chest',     unit: 'cm', primary: true  },
+  { key: 'waist',     label: 'Waist',     unit: 'cm', primary: true  },
+  { key: 'hips',      label: 'Hips',      unit: 'cm', primary: false },
+  { key: 'bicep',     label: 'Bicep',     unit: 'cm', primary: false },
+  { key: 'thigh',     label: 'Thigh',     unit: 'cm', primary: false },
+  { key: 'inseam',    label: 'Inseam',    unit: 'cm', primary: false },
+];
+
+const tapeValues = {}; // key → tape value
+
+// ── Render measurement rows ───────────────────────────────────────────────────
+const list = document.getElementById('measurements-list');
+
+ROWS.forEach(row => {
+  const div = document.createElement('div');
+  div.className = 'measurement-row';
+  div.id = 'row-' + row.key;
+  div.innerHTML = `
+    <div>
+      <div class="m-name">${row.label}${row.primary ? ' ★' : ''}</div>
+    </div>
+    <div class="m-scan" id="scan-${row.key}">${M[row.key]}</div>
+    <div class="m-tape-wrap">
+      <input class="m-tape" type="number" inputmode="decimal" placeholder="—"
+        id="tape-${row.key}" min="0" max="300" step="0.1">
+    </div>
+    <div class="m-delta" id="delta-${row.key}">—</div>
+  `;
+  list.appendChild(div);
+
+  document.getElementById('tape-' + row.key).addEventListener('input', e => {
+    const val = parseFloat(e.target.value);
+    if (!isNaN(val) && val > 0) {
+      tapeValues[row.key] = val;
+    } else {
+      delete tapeValues[row.key];
+    }
+    updateDelta(row.key);
+    updateSummary();
+  });
+});
+
+// ── Delta calculation ─────────────────────────────────────────────────────────
+function updateDelta(key) {
+  const deltaEl = document.getElementById('delta-' + key);
+  const tape    = tapeValues[key];
+  if (tape === undefined) { deltaEl.textContent = '—'; deltaEl.className = 'm-delta'; return; }
+  const diff = M[key] - tape;
+  const absDiff = Math.abs(diff);
+  const sign = diff >= 0 ? '+' : '';
+  deltaEl.textContent = sign + diff.toFixed(1);
+  deltaEl.className = 'm-delta ' + (absDiff <= 2 ? 'good' : absDiff <= 3.5 ? 'warn' : 'bad');
+}
+
+// ── Accuracy summary ──────────────────────────────────────────────────────────
+function updateSummary() {
+  const keys = Object.keys(tapeValues);
+  if (keys.length === 0) {
+    document.getElementById('summary-card').classList.remove('visible');
+    return;
+  }
+
+  let pass = 0, fail = 0, maxDiff = 0, maxKey = '';
+  keys.forEach(k => {
+    const diff = Math.abs(M[k] - tapeValues[k]);
+    if (diff <= 2) pass++;
+    else fail++;
+    if (diff > maxDiff) { maxDiff = diff; maxKey = k; }
+  });
+
+  const primaryPassed = ['chest','waist'].filter(k => tapeValues[k] !== undefined &&
+    Math.abs(M[k] - tapeValues[k]) <= 2).length;
+  const primaryTotal  = ['chest','waist'].filter(k => tapeValues[k] !== undefined).length;
+
+  const summaryRows = document.getElementById('summary-rows');
+  summaryRows.innerHTML = `
+    <div class="summary-stat">
+      Measurements entered <span>${keys.length}</span>
+    </div>
+    <div class="summary-stat">
+      Within ±2 cm <span class="pass-count">${pass} / ${keys.length}</span>
+    </div>
+    ${fail > 0 ? `<div class="summary-stat">Outside ±2 cm <span class="fail-count">${fail}</span></div>` : ''}
+    ${primaryTotal > 0 ? `<div class="summary-stat">Primary (chest + waist) <span class="${primaryPassed === primaryTotal ? 'pass-count' : 'fail-count'}">${primaryPassed} / ${primaryTotal} pass</span></div>` : ''}
+    ${maxKey ? `<div class="summary-stat">Largest error <span>${ROWS.find(r=>r.key===maxKey)?.label} ± ${maxDiff.toFixed(1)} cm</span></div>` : ''}
+  `;
+
+  document.getElementById('summary-card').classList.add('visible');
+}
+
+// ── Quality score display ─────────────────────────────────────────────────────
+// Quality = min(frontFrames.length, sideFrames.length) as a proxy
+const qualityScore = Math.min(
+  Math.min(frontFrames.length, 15) / 15,
+  Math.min(sideFrames.length, 15) / 15
+);
+const qualityDots = Math.round(qualityScore * 5);
+const qualityLabels = ['Poor','Fair','OK','Good','Great','Excellent'];
+
+const dotsEl = document.getElementById('quality-dots');
+for (let i = 0; i < 5; i++) {
+  const d = document.createElement('div');
+  d.className = 'qdot ' + (i < qualityDots ? 'filled' : 'empty');
+  dotsEl.appendChild(d);
+}
+document.getElementById('quality-text').textContent =
+  qualityLabels[qualityDots] + ` — ${frontFrames.length} front frames, ${sideFrames.length} side frames captured`;
+
+document.getElementById('quality-badge-header').textContent =
+  'Quality: ' + qualityLabels[qualityDots];
+
+// ── Debug values ──────────────────────────────────────────────────────────────
+document.getElementById('subject-name-display').textContent = subjectName + ' · ' + heightCm + ' cm';
+
+const debugGrid = document.getElementById('debug-grid');
+const d = M._debug;
+[
+  ['Ratio', M._ratio + ' cm/px'],
+  ['Chest front', d.chestFront + ' cm'], ['Chest depth', d.chestDepth + ' cm'],
+  ['Waist front', d.waistFront + ' cm'], ['Waist depth', d.waistDepth + ' cm'],
+  ['Hip front',   d.hipFront   + ' cm'], ['Hip depth',   d.hipDepth   + ' cm'],
+  ['Thigh front', d.thighFront + ' cm'], ['Thigh depth', d.thighDepth + ' cm'],
+].forEach(([label, val]) => {
+  const item = document.createElement('div');
+  item.className = 'debug-item';
+  item.innerHTML = `${label}: <span>${val}</span>`;
+  debugGrid.appendChild(item);
+});
+
+// ── CSV Export ────────────────────────────────────────────────────────────────
+document.getElementById('btn-export').addEventListener('click', () => {
+  const headers = ['Date','Subject','Height_cm',
+    'Shoulders_Scan','Shoulders_Tape','Shoulders_Delta',
+    'Chest_Scan','Chest_Tape','Chest_Delta',
+    'Waist_Scan','Waist_Tape','Waist_Delta',
+    'Hips_Scan','Hips_Tape','Hips_Delta',
+    'Bicep_Scan','Bicep_Tape','Bicep_Delta',
+    'Thigh_Scan','Thigh_Tape','Thigh_Delta',
+    'Inseam_Scan','Inseam_Tape','Inseam_Delta',
+    'Quality_Score','Front_Frames','Side_Frames'
+  ];
+
+  function row(key) {
+    const scan = M[key];
+    const tape = tapeValues[key] !== undefined ? tapeValues[key] : '';
+    const delta = tape !== '' ? (scan - tape).toFixed(1) : '';
+    return [scan, tape, delta];
+  }
+
+  const date = new Date().toISOString().split('T')[0];
+  const values = [
+    date, subjectName, heightCm,
+    ...row('shoulders'), ...row('chest'), ...row('waist'),
+    ...row('hips'), ...row('bicep'), ...row('thigh'), ...row('inseam'),
+    qualityLabels[qualityDots], frontFrames.length, sideFrames.length
+  ];
+
+  // Append to existing CSV in localStorage (accumulate all test sessions)
+  const storageKey = 'fitscan_poc_results';
+  let existing = localStorage.getItem(storageKey) || '';
+  if (!existing) existing = headers.join(',') + '\n';
+  existing += values.join(',') + '\n';
+  localStorage.setItem(storageKey, existing);
+
+  // Download
+  const blob = new Blob([existing], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'fitscan-accuracy-test-' + date + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ── Scan again ────────────────────────────────────────────────────────────────
+document.getElementById('btn-again').addEventListener('click', () => {
+  // Keep subject name pre-filled but clear scan data
+  sessionStorage.removeItem('front_frames');
+  sessionStorage.removeItem('side_frames');
+  window.location.href = 'index.html';
+});
+</script>
+</body>
+</html>

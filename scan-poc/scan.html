@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>FitScan — Scanning</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #000; overflow: hidden; width: 100vw; height: 100vh; }
+
+    #video {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      /* Flip horizontally so buddy sees natural (non-mirrored) view */
+      transform: scaleX(-1);
+    }
+
+    #overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* ── Top bar ── */
+    #top-bar {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 52px 20px 14px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+    }
+    #scan-label {
+      font-size: 13px; font-weight: 700; color: #fff;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      background: rgba(255,255,255,0.15);
+      padding: 5px 12px; border-radius: 20px;
+    }
+    #scan-label.side { background: rgba(91,141,184,0.5); }
+    #btn-cancel {
+      background: rgba(255,255,255,0.15);
+      border: none; color: #fff; padding: 6px 14px;
+      border-radius: 20px; font-size: 13px; font-weight: 600;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Status message (centre, above quality bar) ── */
+    #status-msg {
+      position: fixed; left: 0; right: 0;
+      bottom: 130px;
+      z-index: 10;
+      text-align: center;
+      padding: 0 24px;
+    }
+    #status-text {
+      display: inline-block;
+      background: rgba(0,0,0,0.65);
+      color: #fff; font-size: 15px; font-weight: 600;
+      padding: 8px 16px; border-radius: 20px;
+      max-width: 320px;
+    }
+    #status-text.good { background: rgba(26,158,92,0.85); }
+
+    /* ── Progress bar ── */
+    #progress-wrap {
+      position: fixed; left: 20px; right: 20px;
+      bottom: 100px; z-index: 10;
+      display: none;
+    }
+    #progress-label {
+      font-size: 12px; color: rgba(255,255,255,0.7);
+      text-align: center; margin-bottom: 6px;
+    }
+    #progress-track {
+      height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden;
+    }
+    #progress-fill {
+      height: 100%; width: 0%; background: #00ff88;
+      border-radius: 3px; transition: width 0.1s;
+    }
+
+    /* ── Quality dots ── */
+    #quality-bar {
+      position: fixed; left: 0; right: 0;
+      bottom: 40px; z-index: 10;
+      display: flex; justify-content: center; gap: 10px;
+      padding: 0 24px;
+    }
+    .q-dot {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .q-dot-circle {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      transition: background 0.2s;
+    }
+    .q-dot-circle.pass { background: #00ff88; }
+    .q-dot-circle.fail { background: #ff6b6b; }
+    .q-dot-label { font-size: 9px; color: rgba(255,255,255,0.5); text-align: center; }
+
+    /* ── Transition screen (between front and side) ── */
+    #transition-screen {
+      position: fixed; inset: 0; z-index: 20;
+      background: rgba(0,0,0,0.88);
+      display: none;
+      flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px;
+      text-align: center;
+    }
+    #transition-screen.visible { display: flex; }
+    .transition-icon { font-size: 60px; margin-bottom: 20px; }
+    .transition-title { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+    .transition-sub { font-size: 15px; color: rgba(255,255,255,0.7); line-height: 1.6; }
+    .transition-countdown {
+      margin-top: 24px;
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 700; color: #fff;
+    }
+
+    /* ── Loading screen ── */
+    #loading-screen {
+      position: fixed; inset: 0; z-index: 30;
+      background: #000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px;
+    }
+    #loading-screen.hidden { display: none; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(255,255,255,0.15);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-text { color: rgba(255,255,255,0.6); font-size: 14px; }
+
+    /* ── Error screen ── */
+    #error-screen {
+      position: fixed; inset: 0; z-index: 30;
+      background: #000; display: none;
+      flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px; text-align: center; gap: 16px;
+    }
+    #error-screen.visible { display: flex; }
+    #error-msg { color: #ff6b6b; font-size: 15px; line-height: 1.6; }
+    #btn-retry {
+      padding: 12px 28px; background: #fff; color: #111;
+      border: none; border-radius: 12px; font-size: 15px; font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<video id="video" playsinline muted autoplay></video>
+<canvas id="overlay"></canvas>
+
+<!-- Top bar -->
+<div id="top-bar">
+  <div id="scan-label">Front Scan</div>
+  <button id="btn-cancel">Cancel</button>
+</div>
+
+<!-- Status message -->
+<div id="status-msg"><div id="status-text">Initialising…</div></div>
+
+<!-- Capture progress -->
+<div id="progress-wrap">
+  <div id="progress-label">Hold still — 0 / 15 frames</div>
+  <div id="progress-track"><div id="progress-fill"></div></div>
+</div>
+
+<!-- Quality dots -->
+<div id="quality-bar">
+  <div class="q-dot"><div class="q-dot-circle" id="q-fullBody"></div><div class="q-dot-label">Body</div></div>
+  <div class="q-dot"><div class="q-dot-circle" id="q-distance"></div><div class="q-dot-label">Dist</div></div>
+  <div class="q-dot"><div class="q-dot-circle" id="q-centred"></div><div class="q-dot-label">Centre</div></div>
+  <div class="q-dot"><div class="q-dot-circle" id="q-tilt"></div><div class="q-dot-label">Level</div></div>
+  <div class="q-dot"><div class="q-dot-circle" id="q-lighting"></div><div class="q-dot-label">Light</div></div>
+</div>
+
+<!-- Transition between front and side -->
+<div id="transition-screen">
+  <div class="transition-icon">↩️</div>
+  <div class="transition-title">Front scan done!</div>
+  <div class="transition-sub">Subject — turn to your <strong style="color:#fff">left</strong><br>Buddy — <strong style="color:#fff">stay in the same spot</strong></div>
+  <div class="transition-countdown" id="countdown">3</div>
+</div>
+
+<!-- Loading -->
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <div id="loading-text">Starting camera…</div>
+</div>
+
+<!-- Error -->
+<div id="error-screen">
+  <div style="font-size:40px">📷</div>
+  <div id="error-msg">Camera access is required.<br>Please allow camera permission and try again.</div>
+  <button id="btn-retry">Try Again</button>
+</div>
+
+<!-- MediaPipe CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+<!-- Local modules -->
+<script src="js/voice.js"></script>
+<script src="js/quality.js"></script>
+
+<script>
+// ── Redirect guard ──────────────────────────────────────────────────────────
+const HEIGHT_CM = parseFloat(sessionStorage.getItem('height_cm'));
+if (!HEIGHT_CM || HEIGHT_CM < 100) { window.location.href = 'index.html'; }
+
+// ── DOM refs ────────────────────────────────────────────────────────────────
+const video          = document.getElementById('video');
+const canvas         = document.getElementById('overlay');
+const ctx            = canvas.getContext('2d');
+const loadingScreen  = document.getElementById('loading-screen');
+const loadingText    = document.getElementById('loading-text');
+const errorScreen    = document.getElementById('error-screen');
+const transScreen    = document.getElementById('transition-screen');
+const statusText     = document.getElementById('status-text');
+const scanLabel      = document.getElementById('scan-label');
+const progressWrap   = document.getElementById('progress-wrap');
+const progressLabel  = document.getElementById('progress-label');
+const progressFill   = document.getElementById('progress-fill');
+const countdownEl    = document.getElementById('countdown');
+
+// ── State ───────────────────────────────────────────────────────────────────
+let state = 'LOADING'; // LOADING | FRONT | TRANSITION | SIDE | DONE
+const FRAMES_NEEDED = 15;
+let frontFrames = [];
+let sideFrames  = [];
+let goodCount   = 0;
+let lastQuality = null;
+let imgW = 1, imgH = 1;
+
+// Brightness canvas (small offscreen, for lighting check)
+const bCanvas = document.createElement('canvas');
+bCanvas.width = 80; bCanvas.height = 80;
+const bCtx = bCanvas.getContext('2d', { willReadFrequently: true });
+
+// ── Canvas sizing ────────────────────────────────────────────────────────────
+function resizeCanvas() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// ── Brightness helper ────────────────────────────────────────────────────────
+function getBrightness(refLm) {
+  try {
+    const nx = refLm.x * imgW, ny = refLm.y * imgH;
+    bCtx.drawImage(video, nx - 40, ny - 40, 80, 80, 0, 0, 80, 80);
+    const d = bCtx.getImageData(0, 0, 80, 80).data;
+    let s = 0;
+    for (let i = 0; i < d.length; i += 4)
+      s += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    return s / (d.length / 4);
+  } catch(e) { return 128; }
+}
+
+// ── Draw overlay ─────────────────────────────────────────────────────────────
+const CONNECTIONS = [
+  [11,12],[11,13],[13,15],[12,14],[14,16], // arms + shoulders
+  [11,23],[12,24],[23,24],                 // torso
+  [23,25],[25,27],[24,26],[26,28]          // legs
+];
+
+function drawOverlay(lm, allPass) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!lm) return;
+
+  const cw = canvas.width, ch = canvas.height;
+  const color = allPass ? '#00ff88' : 'rgba(255,165,0,0.9)';
+
+  // Skeleton lines
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.globalAlpha = 0.7;
+  CONNECTIONS.forEach(([a, b]) => {
+    if (lm[a].visibility > 0.5 && lm[b].visibility > 0.5) {
+      ctx.beginPath();
+      // Mirror x to match the CSS-flipped video
+      ctx.moveTo(cw - lm[a].x * cw, lm[a].y * ch);
+      ctx.lineTo(cw - lm[b].x * cw, lm[b].y * ch);
+      ctx.stroke();
+    }
+  });
+
+  // Landmark dots
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = color;
+  [0,11,12,13,14,23,24,25,26,27,28].forEach(i => {
+    if (lm[i].visibility > 0.5) {
+      ctx.beginPath();
+      ctx.arc(cw - lm[i].x * cw, lm[i].y * ch, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  // Guide frame (bounding box of body + padding)
+  const visLm = lm.filter(l => l.visibility > 0.5);
+  if (visLm.length > 4) {
+    const xs  = visLm.map(l => cw - l.x * cw);
+    const ys  = visLm.map(l => l.y * ch);
+    const pad = 24;
+    const fx  = Math.min(...xs) - pad;
+    const fy  = Math.min(...ys) - pad;
+    const fw  = Math.max(...xs) - Math.min(...xs) + pad * 2;
+    const fh  = Math.max(...ys) - Math.min(...ys) + pad * 2;
+    const cs  = 22; // corner bracket size
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = allPass ? 1 : 0.8;
+
+    // Draw corner brackets only (cleaner than full rect)
+    [
+      [fx,    fy,    cs, 0,  cs, 0],   // top-left
+      [fx+fw, fy,   -cs, 0,  cs, 0],   // top-right
+      [fx,    fy+fh, cs, 0, -cs, 0],   // bottom-left
+      [fx+fw, fy+fh,-cs, 0, -cs, 0],   // bottom-right
+    ].forEach(([x, y, dx1, dy1, dx2, dy2]) => {
+      ctx.beginPath();
+      ctx.moveTo(x, y); ctx.lineTo(x + dx1, y + dy1 );
+      ctx.moveTo(x, y); ctx.lineTo(x + dx2 * 0, y + dy2);
+      ctx.stroke();
+    });
+
+    // Simpler corner rendering
+    const corners = [
+      [fx, fy, 1, 1], [fx+fw, fy, -1, 1],
+      [fx, fy+fh, 1, -1], [fx+fw, fy+fh, -1, -1]
+    ];
+    corners.forEach(([cx2, cy2, sx, sy]) => {
+      ctx.beginPath();
+      ctx.moveTo(cx2 + sx * cs, cy2);
+      ctx.lineTo(cx2, cy2);
+      ctx.lineTo(cx2, cy2 + sy * cs);
+      ctx.stroke();
+    });
+  }
+
+  ctx.globalAlpha = 1;
+}
+
+// ── Update quality dots UI ────────────────────────────────────────────────────
+function updateQualityDots(q) {
+  ['fullBody','distance','centred','tilt','lighting'].forEach(k => {
+    const el = document.getElementById('q-' + k);
+    if (!el) return;
+    el.className = 'q-dot-circle';
+    if (q && q.checks) {
+      el.classList.add(q.checks[k] ? 'pass' : 'fail');
+    }
+  });
+}
+
+// ── Update status text ────────────────────────────────────────────────────────
+function setStatus(msg, isGood = false) {
+  statusText.textContent = msg;
+  statusText.className = isGood ? 'good' : '';
+}
+
+// ── Progress bar ──────────────────────────────────────────────────────────────
+function updateProgress(n) {
+  if (n === 0) {
+    progressWrap.style.display = 'none';
+  } else {
+    progressWrap.style.display = 'block';
+    const pct = Math.min(100, (n / FRAMES_NEEDED) * 100);
+    progressFill.style.width = pct + '%';
+    progressLabel.textContent = `Hold still — ${n} / ${FRAMES_NEEDED} frames`;
+  }
+}
+
+// ── MediaPipe onResults ───────────────────────────────────────────────────────
+function onResults(results) {
+  if (state === 'LOADING' || state === 'TRANSITION' || state === 'DONE') return;
+
+  const lm = results.poseLandmarks;
+  imgW = video.videoWidth  || 640;
+  imgH = video.videoHeight || 480;
+
+  const brightness = lm ? getBrightness(lm[0]) : 128;
+  const q = state === 'SIDE'
+    ? Quality.checkSide(lm, brightness)
+    : Quality.checkFront(lm, brightness);
+
+  lastQuality = q;
+  drawOverlay(lm, q.allPass);
+  updateQualityDots(q);
+  Voice.speak(q.message);
+  setStatus(q.message, q.allPass);
+
+  if (q.allPass && lm) {
+    goodCount++;
+    const frames = state === 'SIDE' ? sideFrames : frontFrames;
+    // Store a plain copy of the landmarks array
+    frames.push(lm.map(l => ({ x: l.x, y: l.y, z: l.z, visibility: l.visibility })));
+    updateProgress(goodCount);
+
+    if (goodCount >= FRAMES_NEEDED) {
+      if (state === 'FRONT') {
+        state = 'TRANSITION';
+        handleFrontDone();
+      } else {
+        state = 'DONE';
+        handleSideDone();
+      }
+    }
+  } else {
+    goodCount = 0;
+    // Reset frame buffers on bad frame — require consecutive good frames
+    if (state === 'FRONT') frontFrames = [];
+    else sideFrames = [];
+    updateProgress(0);
+  }
+}
+
+// ── Front scan complete → transition screen ───────────────────────────────────
+function handleFrontDone() {
+  Voice.cancel();
+  updateProgress(0);
+  setStatus('Front scan complete!', true);
+
+  setTimeout(() => {
+    Voice.speak('Front scan complete. Subject, turn to your left. Buddy, stay in the same spot.', true);
+    transScreen.classList.add('visible');
+    let count = 3;
+    countdownEl.textContent = count;
+    const interval = setInterval(() => {
+      count--;
+      countdownEl.textContent = count;
+      if (count <= 0) {
+        clearInterval(interval);
+        transScreen.classList.remove('visible');
+        startSideScan();
+      }
+    }, 1000);
+  }, 400);
+}
+
+// ── Start side scan ───────────────────────────────────────────────────────────
+function startSideScan() {
+  state = 'SIDE';
+  goodCount = 0;
+  sideFrames = [];
+  scanLabel.textContent = 'Side Scan';
+  scanLabel.classList.add('side');
+  setStatus('Buddy — keep phone at shoulder height', false);
+  Voice.speak('Starting side scan. Buddy, hold steady at shoulder height.', true);
+}
+
+// ── Side scan complete → save + navigate ─────────────────────────────────────
+function handleSideDone() {
+  Voice.cancel();
+  updateProgress(0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  setStatus('All done — calculating measurements…', true);
+  Voice.speak('All done. Calculating measurements.', true);
+
+  sessionStorage.setItem('front_frames', JSON.stringify(frontFrames));
+  sessionStorage.setItem('side_frames',  JSON.stringify(sideFrames));
+  sessionStorage.setItem('img_width',    imgW);
+  sessionStorage.setItem('img_height',   imgH);
+
+  setTimeout(() => { window.location.href = 'results.html'; }, 1800);
+}
+
+// ── Initialise camera + MediaPipe ─────────────────────────────────────────────
+async function init() {
+  loadingText.textContent = 'Starting camera…';
+
+  // Camera — use ideal not exact for iOS compatibility
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+  } catch(e) {
+    loadingScreen.classList.add('hidden');
+    errorScreen.classList.add('visible');
+    document.getElementById('error-msg').textContent =
+      'Camera access is required. Please allow camera permission and try again.\n\n(' + e.message + ')';
+    return;
+  }
+
+  video.srcObject = stream;
+  await new Promise(res => { video.onloadedmetadata = res; });
+  await video.play();
+
+  loadingText.textContent = 'Loading pose model…';
+
+  // MediaPipe Pose
+  const pose = new Pose({
+    locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+  });
+  pose.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    enableSegmentation: false,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
+  pose.onResults(onResults);
+
+  // Processing loop
+  let processing = false;
+  async function pumpFrame() {
+    if (!processing && video.readyState >= 2) {
+      processing = true;
+      try { await pose.send({ image: video }); } catch(e) {}
+      processing = false;
+    }
+    requestAnimationFrame(pumpFrame);
+  }
+
+  // Wake lock — keep screen on during scan (Safari 16.4+)
+  try { await navigator.wakeLock.request('screen'); } catch(e) {}
+
+  loadingScreen.classList.add('hidden');
+  state = 'FRONT';
+  setStatus('Buddy — position the phone at shoulder height', false);
+  Voice.speak('Starting front scan. Buddy, hold the phone at shoulder height, about 6 to 8 feet from the subject.', true);
+
+  pumpFrame();
+}
+
+// ── Buttons ───────────────────────────────────────────────────────────────────
+document.getElementById('btn-cancel').addEventListener('click', () => {
+  Voice.cancel();
+  window.location.href = 'index.html';
+});
+document.getElementById('btn-retry').addEventListener('click', () => {
+  errorScreen.classList.remove('visible');
+  loadingScreen.classList.remove('hidden');
+  init();
+});
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

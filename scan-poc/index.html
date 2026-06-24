@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>FitScan — Body Scan PoC</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f7;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0 0 40px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 440px;
+      padding: 0 20px;
+    }
+
+    .header {
+      text-align: center;
+      padding: 40px 0 28px;
+    }
+    .header h1 { font-size: 28px; font-weight: 700; color: #111; letter-spacing: -0.5px; }
+    .header p  { font-size: 14px; color: #888; margin-top: 6px; }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 6px;
+    }
+    label span { font-weight: 400; color: #aaa; font-size: 12px; }
+
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      color: #111;
+      background: #fafafa;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    input:focus { border-color: #111; background: #fff; }
+    input.error { border-color: #e53e3e; }
+
+    .input-row { margin-bottom: 14px; }
+    .input-row:last-child { margin-bottom: 0; }
+
+    /* Buddy Guide */
+    .buddy-toggle {
+      width: 100%;
+      background: #f5f5f7;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #111;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .buddy-toggle .arrow { transition: transform 0.2s; font-size: 12px; color: #888; }
+    .buddy-toggle.open .arrow { transform: rotate(180deg); }
+
+    .buddy-guide {
+      display: none;
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .buddy-guide.hidden { display: none; }
+
+    .buddy-step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: #f9f9f9;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .buddy-step-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+      width: 28px;
+      text-align: center;
+    }
+    .buddy-step-text { font-size: 13px; color: #333; line-height: 1.5; }
+    .buddy-step-text strong { color: #111; font-weight: 600; }
+
+    /* Checklist */
+    .checklist { display: flex; flex-direction: column; gap: 8px; }
+    .check-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 13px;
+      color: #555;
+    }
+    .check-icon {
+      width: 20px; height: 20px;
+      background: #111;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    /* Accuracy info */
+    .accuracy-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f0fff4;
+      border: 1.5px solid #c6f6d5;
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+    .accuracy-badge .icon { font-size: 20px; }
+    .accuracy-badge p { font-size: 13px; color: #276749; line-height: 1.4; }
+    .accuracy-badge strong { color: #1a4731; }
+
+    /* Start button */
+    .btn-start {
+      width: 100%;
+      padding: 16px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      margin-top: 6px;
+      transition: background 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-start:active { background: #333; transform: scale(0.98); }
+
+    .error-msg {
+      color: #e53e3e;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+    .error-msg.visible { display: block; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>FitScan PoC</h1>
+    <p>Body measurement accuracy tester</p>
+  </div>
+
+  <!-- Subject info -->
+  <div class="card">
+    <div class="card-title">Subject Info</div>
+    <div class="input-row">
+      <label for="subject-name">Subject name <span>(optional — for CSV export)</span></label>
+      <input type="text" id="subject-name" placeholder="e.g. Test 1" autocomplete="off">
+    </div>
+    <div class="input-row">
+      <label for="height">Height (cm)</label>
+      <input type="number" id="height" placeholder="175" min="100" max="250" inputmode="numeric">
+      <div class="error-msg" id="height-error">Please enter a valid height (100–250 cm)</div>
+    </div>
+  </div>
+
+  <!-- Buddy guide -->
+  <div class="card">
+    <button class="buddy-toggle" id="buddy-toggle" type="button">
+      👥 Buddy Instructions — show to your buddy
+      <span class="arrow">▼</span>
+    </button>
+    <div class="buddy-guide" id="buddy-guide">
+      <div class="buddy-step">
+        <div class="buddy-step-icon">📏</div>
+        <div class="buddy-step-text"><strong>Distance:</strong> Stand so the subject's full body fills the green frame. Roughly 6–8 feet away.</div>
+      </div>
+      <div class="buddy-step">
+        <div class="buddy-step-icon">📐</div>
+        <div class="buddy-step-text"><strong>Height:</strong> Hold phone at the subject's <strong>shoulder height</strong>. Not higher, not lower. Rear camera facing them.</div>
+      </div>
+      <div class="buddy-step">
+        <div class="buddy-step-icon">📱</div>
+        <div class="buddy-step-text"><strong>Steady:</strong> Both hands. Phone vertical (portrait). Don't tilt. App auto-captures — you don't press anything.</div>
+      </div>
+      <div class="buddy-step">
+        <div class="buddy-step-icon">↩️</div>
+        <div class="buddy-step-text"><strong>Side scan:</strong> After front scan, subject turns to their <strong>left</strong> (your right). <strong>You stay in the same spot.</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pre-scan checklist -->
+  <div class="card">
+    <div class="card-title">Before you start</div>
+    <div class="checklist">
+      <div class="check-item"><div class="check-icon">✓</div>Plain wall or background behind subject</div>
+      <div class="check-item"><div class="check-icon">✓</div>Light source facing the subject (not behind)</div>
+      <div class="check-item"><div class="check-icon">✓</div>Subject wears fitted clothing — not loose or baggy</div>
+      <div class="check-item"><div class="check-icon">✓</div>Subject is barefoot (or note that shoes add ~2 cm)</div>
+      <div class="check-item"><div class="check-icon">✓</div>Subject's arms slightly away from body (~30°)</div>
+    </div>
+  </div>
+
+  <!-- Accuracy note -->
+  <div class="card">
+    <div class="accuracy-badge">
+      <div class="icon">🎯</div>
+      <p>This PoC tests <strong>±2 cm accuracy</strong> on chest and waist against a tape measure. After the scan, enter your real tape measurements to see the delta.</p>
+    </div>
+  </div>
+
+  <!-- Start -->
+  <button class="btn-start" id="btn-start" type="button">Start Scan →</button>
+
+</div>
+
+<script>
+  const buddyToggle = document.getElementById('buddy-toggle');
+  const buddyGuide  = document.getElementById('buddy-guide');
+  let guideOpen = false;
+
+  buddyToggle.addEventListener('click', () => {
+    guideOpen = !guideOpen;
+    buddyGuide.classList.toggle('hidden', !guideOpen);
+    buddyToggle.classList.toggle('open', guideOpen);
+  });
+  // Start hidden
+  buddyGuide.classList.add('hidden');
+
+  document.getElementById('btn-start').addEventListener('click', () => {
+    const heightInput = document.getElementById('height');
+    const heightVal   = parseFloat(heightInput.value);
+    const errorEl     = document.getElementById('height-error');
+
+    if (!heightVal || heightVal < 100 || heightVal > 250) {
+      heightInput.classList.add('error');
+      errorEl.classList.add('visible');
+      heightInput.focus();
+      return;
+    }
+
+    heightInput.classList.remove('error');
+    errorEl.classList.remove('visible');
+
+    // Prime Speech Synthesis from user gesture (required on iOS)
+    try {
+      const u = new SpeechSynthesisUtterance('');
+      u.volume = 0;
+      speechSynthesis.speak(u);
+    } catch(e) {}
+
+    // Save to sessionStorage and navigate
+    sessionStorage.setItem('subject_name', document.getElementById('subject-name').value.trim() || 'Subject');
+    sessionStorage.setItem('height_cm', heightVal);
+
+    window.location.href = 'scan.html';
+  });
+</script>
+</body>
+</html>
