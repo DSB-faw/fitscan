@@ -424,21 +424,29 @@ function sheetStatus(icon, msg, color) {
 }
 
 function buildPayload() {
+  const tape  = k => tapeValues[k] !== undefined ? tapeValues[k] : '';
   const delta = k => tapeValues[k] !== undefined ? (M[k] - tapeValues[k]).toFixed(1) : '';
   return {
-    subject:        subjectName,
-    height:         heightCm,
-    shoulders_scan: M.shoulders,  chest_scan:  M.chest,   waist_scan:  M.waist,
-    hips_scan:      M.hips,       bicep_scan:  M.bicep,   thigh_scan:  M.thigh,
-    inseam_scan:    M.inseam,
-    shoulders_tape: tapeValues.shoulders || '', chest_tape:  tapeValues.chest  || '',
-    waist_tape:     tapeValues.waist     || '', hips_tape:   tapeValues.hips   || '',
-    bicep_tape:     tapeValues.bicep     || '', thigh_tape:  tapeValues.thigh  || '',
-    inseam_tape:    tapeValues.inseam    || '',
-    chest_delta:    delta('chest'),  waist_delta: delta('waist'),  hips_delta: delta('hips'),
-    quality:        qualityLabels[qualityDots],
-    front_frames:   frontFrames.length,
-    side_frames:    sideFrames.length,
+    subject: subjectName, height_cm: heightCm,
+    // App scan measurements
+    scan_height:    M.height,     scan_shoulders: M.shoulders,
+    scan_chest:     M.chest,      scan_waist:     M.waist,
+    scan_hips:      M.hips,       scan_bicep:     M.bicep,
+    scan_thigh:     M.thigh,      scan_inseam:    M.inseam,
+    // Manual tape measurements
+    tape_height:    tape('height'),    tape_shoulders: tape('shoulders'),
+    tape_chest:     tape('chest'),     tape_waist:     tape('waist'),
+    tape_hips:      tape('hips'),      tape_bicep:     tape('bicep'),
+    tape_thigh:     tape('thigh'),     tape_inseam:    tape('inseam'),
+    // Deltas (scan − tape)
+    delta_height:    delta('height'),    delta_shoulders: delta('shoulders'),
+    delta_chest:     delta('chest'),     delta_waist:     delta('waist'),
+    delta_hips:      delta('hips'),      delta_bicep:     delta('bicep'),
+    delta_thigh:     delta('thigh'),     delta_inseam:    delta('inseam'),
+    // Meta
+    quality:      qualityLabels[qualityDots],
+    front_frames: frontFrames.length,
+    side_frames:  sideFrames.length,
   };
 }
 
