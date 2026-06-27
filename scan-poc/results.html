@@ -231,6 +231,9 @@ if (!heightCm || frontFrames.length === 0 || sideFrames.length === 0) {
   window.location.href = 'index.html';
 }
 
+// Unique scan ID — used to update the same sheet row when tape values are added later
+const scanId = 'SC-' + Date.now();
+
 // ── Compute measurements ──────────────────────────────────────────────────────
 const frontLm = Measurements.medianLandmarks(frontFrames);
 const sideLm  = Measurements.medianLandmarks(sideFrames);
@@ -414,72 +417,85 @@ document.getElementById('btn-export').addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-// ── Google Sheets auto-save ───────────────────────────────────────────────────
+// ── Google Sheets sync ────────────────────────────────────────────────────────
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxbPxfAFw_mGserraPR-MyF8FsPmWAY6SOekt2pZF7Bnr2x_0GCBxjJHN4zfSKcoQOJww/exec';
 
 function sheetStatus(icon, msg, color) {
   document.getElementById('sheet-icon').textContent = icon;
   document.getElementById('sheet-msg').textContent  = msg;
-  document.getElementById('sheet-msg').style.color  = color || '#888';
+  document.getElementById('sheet-msg').style.color  = color || 'var(--color-text-secondary)';
 }
 
-function buildPayload() {
-  const tape  = k => tapeValues[k] !== undefined ? tapeValues[k] : '';
-  const delta = k => tapeValues[k] !== undefined ? (M[k] - tapeValues[k]).toFixed(1) : '';
-  return {
-    subject: subjectName, height_cm: heightCm,
-    // App scan measurements
-    scan_height:    M.height,     scan_shoulders: M.shoulders,
-    scan_chest:     M.chest,      scan_waist:     M.waist,
-    scan_hips:      M.hips,       scan_bicep:     M.bicep,
-    scan_thigh:     M.thigh,      scan_inseam:    M.inseam,
-    // Manual tape measurements
-    tape_height:    tape('height'),    tape_shoulders: tape('shoulders'),
-    tape_chest:     tape('chest'),     tape_waist:     tape('waist'),
-    tape_hips:      tape('hips'),      tape_bicep:     tape('bicep'),
-    tape_thigh:     tape('thigh'),     tape_inseam:    tape('inseam'),
-    // Deltas (scan − tape)
-    delta_height:    delta('height'),    delta_shoulders: delta('shoulders'),
-    delta_chest:     delta('chest'),     delta_waist:     delta('waist'),
-    delta_hips:      delta('hips'),      delta_bicep:     delta('bicep'),
-    delta_thigh:     delta('thigh'),     delta_inseam:    delta('inseam'),
-    // Meta
-    quality:      qualityLabels[qualityDots],
-    front_frames: frontFrames.length,
-    side_frames:  sideFrames.length,
-  };
+async function postToSheet(payload) {
+  await fetch(SHEET_URL, {
+    method:  'POST',
+    mode:    'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body:    JSON.stringify(payload),
+  });
 }
 
-async function saveToSheet() {
+// ── POST 1: scan data only (on page load) ─────────────────────────────────────
+async function saveInitialScan() {
+  sheetStatus('⏳', 'Saving scan to Google Sheet…');
   try {
-    const res = await fetch(SHEET_URL, {
-      method:  'POST',
-      mode:    'no-cors', // Apps Script requires no-cors from external origins
-      headers: { 'Content-Type': 'text/plain' },
-      body:    JSON.stringify(buildPayload()),
+    await postToSheet({
+      type:        'scan',
+      scan_id:     scanId,
+      subject:     subjectName,
+      height_cm:   heightCm,
+      scan_height:     M.height,     scan_shoulders: M.shoulders,
+      scan_chest:      M.chest,      scan_waist:     M.waist,
+      scan_hips:       M.hips,       scan_bicep:     M.bicep,
+      scan_thigh:      M.thigh,      scan_inseam:    M.inseam,
+      quality:         qualityLabels[qualityDots],
+      front_frames:    frontFrames.length,
+      side_frames:     sideFrames.length,
     });
-    // no-cors means we can't read the response body — if no exception thrown, assume success
-    sheetStatus('✅', 'Saved to Google Sheet', '#1a9e5c');
+    sheetStatus('✅', 'Scan saved — enter tape measurements to update the same row', '#1a9e5c');
   } catch(err) {
-    sheetStatus('❌', 'Sheet save failed — use CSV export instead', '#e53e3e');
+    sheetStatus('❌', 'Sheet save failed — use CSV export as backup', '#e53e3e');
   }
 }
 
-// Auto-save on page load
-saveToSheet();
-
-// Re-save when tape values change (debounced — wait 2s after last input)
-let saveTimer = null;
-function scheduleResave() {
-  clearTimeout(saveTimer);
-  sheetStatus('⏳', 'Updating sheet…', '#888');
-  saveTimer = setTimeout(saveToSheet, 2000);
+// ── POST 2: tape + delta update (when tape values are entered) ─────────────────
+async function saveTapeUpdate() {
+  const delta = k => tapeValues[k] !== undefined ? (M[k] - tapeValues[k]).toFixed(1) : '';
+  sheetStatus('⏳', 'Updating tape measurements…');
+  try {
+    await postToSheet({
+      type:    'tape',
+      scan_id: scanId,
+      tape_height:     tapeValues.height     || '', tape_shoulders: tapeValues.shoulders || '',
+      tape_chest:      tapeValues.chest      || '', tape_waist:     tapeValues.waist     || '',
+      tape_hips:       tapeValues.hips       || '', tape_bicep:     tapeValues.bicep     || '',
+      tape_thigh:      tapeValues.thigh      || '', tape_inseam:    tapeValues.inseam    || '',
+      delta_height:    delta('height'),    delta_shoulders: delta('shoulders'),
+      delta_chest:     delta('chest'),     delta_waist:     delta('waist'),
+      delta_hips:      delta('hips'),      delta_bicep:     delta('bicep'),
+      delta_thigh:     delta('thigh'),     delta_inseam:    delta('inseam'),
+    });
+    sheetStatus('✅', 'Sheet updated — one row, no duplicates', '#1a9e5c');
+  } catch(err) {
+    sheetStatus('❌', 'Update failed — use CSV export as backup', '#e53e3e');
+  }
 }
 
-// Attach resave to all tape inputs after they're rendered
+// Auto-save scan on page load
+saveInitialScan();
+
+// Debounced tape update — fires 2s after last tape input
+let tapeTimer = null;
+function scheduleTapeUpdate() {
+  clearTimeout(tapeTimer);
+  sheetStatus('⏳', 'Updating sheet…');
+  tapeTimer = setTimeout(saveTapeUpdate, 2000);
+}
+
+// Attach to all tape inputs after they render
 setTimeout(() => {
   document.querySelectorAll('.m-tape').forEach(input => {
-    input.addEventListener('input', scheduleResave);
+    input.addEventListener('input', scheduleTapeUpdate);
   });
 }, 100);
 
