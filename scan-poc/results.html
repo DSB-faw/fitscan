@@ -198,6 +198,17 @@
     <div class="note" style="margin-top:8px;margin-bottom:0;">Front width + side depth fed into ellipse formula. Useful for tuning.</div>
   </div>
 
+  <!-- Sheet sync status -->
+  <div id="sheet-status" style="
+    display:flex; align-items:center; gap:8px;
+    background:#fff; border-radius:12px; padding:12px 16px;
+    margin-bottom:14px; font-size:13px; color:#888;
+    box-shadow:0 1px 4px rgba(0,0,0,0.07);
+  ">
+    <span id="sheet-icon">⏳</span>
+    <span id="sheet-msg">Saving to Google Sheet…</span>
+  </div>
+
   <!-- Actions -->
   <div class="btn-row">
     <button class="btn btn-primary" id="btn-export">Export CSV</button>
@@ -403,9 +414,69 @@ document.getElementById('btn-export').addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
+// ── Google Sheets auto-save ───────────────────────────────────────────────────
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxbPxfAFw_mGserraPR-MyF8FsPmWAY6SOekt2pZF7Bnr2x_0GCBxjJHN4zfSKcoQOJww/exec';
+
+function sheetStatus(icon, msg, color) {
+  document.getElementById('sheet-icon').textContent = icon;
+  document.getElementById('sheet-msg').textContent  = msg;
+  document.getElementById('sheet-msg').style.color  = color || '#888';
+}
+
+function buildPayload() {
+  const delta = k => tapeValues[k] !== undefined ? (M[k] - tapeValues[k]).toFixed(1) : '';
+  return {
+    subject:        subjectName,
+    height:         heightCm,
+    shoulders_scan: M.shoulders,  chest_scan:  M.chest,   waist_scan:  M.waist,
+    hips_scan:      M.hips,       bicep_scan:  M.bicep,   thigh_scan:  M.thigh,
+    inseam_scan:    M.inseam,
+    shoulders_tape: tapeValues.shoulders || '', chest_tape:  tapeValues.chest  || '',
+    waist_tape:     tapeValues.waist     || '', hips_tape:   tapeValues.hips   || '',
+    bicep_tape:     tapeValues.bicep     || '', thigh_tape:  tapeValues.thigh  || '',
+    inseam_tape:    tapeValues.inseam    || '',
+    chest_delta:    delta('chest'),  waist_delta: delta('waist'),  hips_delta: delta('hips'),
+    quality:        qualityLabels[qualityDots],
+    front_frames:   frontFrames.length,
+    side_frames:    sideFrames.length,
+  };
+}
+
+async function saveToSheet() {
+  try {
+    const res = await fetch(SHEET_URL, {
+      method:  'POST',
+      mode:    'no-cors', // Apps Script requires no-cors from external origins
+      headers: { 'Content-Type': 'text/plain' },
+      body:    JSON.stringify(buildPayload()),
+    });
+    // no-cors means we can't read the response body — if no exception thrown, assume success
+    sheetStatus('✅', 'Saved to Google Sheet', '#1a9e5c');
+  } catch(err) {
+    sheetStatus('❌', 'Sheet save failed — use CSV export instead', '#e53e3e');
+  }
+}
+
+// Auto-save on page load
+saveToSheet();
+
+// Re-save when tape values change (debounced — wait 2s after last input)
+let saveTimer = null;
+function scheduleResave() {
+  clearTimeout(saveTimer);
+  sheetStatus('⏳', 'Updating sheet…', '#888');
+  saveTimer = setTimeout(saveToSheet, 2000);
+}
+
+// Attach resave to all tape inputs after they're rendered
+setTimeout(() => {
+  document.querySelectorAll('.m-tape').forEach(input => {
+    input.addEventListener('input', scheduleResave);
+  });
+}, 100);
+
 // ── Scan again ────────────────────────────────────────────────────────────────
 document.getElementById('btn-again').addEventListener('click', () => {
-  // Keep subject name pre-filled but clear scan data
   sessionStorage.removeItem('front_frames');
   sessionStorage.removeItem('side_frames');
   window.location.href = 'index.html';
