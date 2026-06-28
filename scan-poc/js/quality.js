@@ -95,5 +95,9 @@ const Quality = (() => {
     return { allPass: false, failedCheck: check, message, checks };
   }
 
-  return { checkFront, checkSide };
+  // Diagonal (45°) scan uses the same checks as front — body is still upright,
+  // quality criteria (distance, centring, phone level, lighting) are unchanged.
+  const checkDiagonal = checkFront;
+
+  return { checkFront, checkSide, checkDiagonal };
 })();

@@ -222,10 +222,11 @@
 // ── Read session data ─────────────────────────────────────────────────────────
 const subjectName  = sessionStorage.getItem('subject_name') || 'Subject';
 const heightCm     = parseFloat(sessionStorage.getItem('height_cm'));
-const frontFrames  = JSON.parse(sessionStorage.getItem('front_frames') || '[]');
-const sideFrames   = JSON.parse(sessionStorage.getItem('side_frames')  || '[]');
-const imgW         = parseFloat(sessionStorage.getItem('img_width')  || 640);
-const imgH         = parseFloat(sessionStorage.getItem('img_height') || 480);
+const frontFrames    = JSON.parse(sessionStorage.getItem('front_frames')    || '[]');
+const sideFrames     = JSON.parse(sessionStorage.getItem('side_frames')     || '[]');
+const diagonalFrames = JSON.parse(sessionStorage.getItem('diagonal_frames') || '[]');
+const imgW           = parseFloat(sessionStorage.getItem('img_width')  || 640);
+const imgH           = parseFloat(sessionStorage.getItem('img_height') || 480);
 
 if (!heightCm || frontFrames.length === 0 || sideFrames.length === 0) {
   window.location.href = 'index.html';
@@ -237,7 +238,8 @@ const scanId = 'SC-' + Date.now();
 // ── Compute measurements ──────────────────────────────────────────────────────
 const frontLm = Measurements.medianLandmarks(frontFrames);
 const sideLm  = Measurements.medianLandmarks(sideFrames);
-const M       = Measurements.compute(frontLm, sideLm, heightCm, imgW, imgH);
+const diagLm  = diagonalFrames.length > 0 ? Measurements.medianLandmarks(diagonalFrames) : null;
+const M       = Measurements.compute(frontLm, diagLm, sideLm, heightCm, imgW, imgH);
 
 // ── Measurement rows config ───────────────────────────────────────────────────
 const ROWS = [
@@ -451,6 +453,8 @@ async function saveInitialScan() {
       quality:         qualityLabels[qualityDots],
       front_frames:    frontFrames.length,
       side_frames:     sideFrames.length,
+      diagonal_frames: diagonalFrames.length,
+      has_3views:      diagLm ? 1 : 0,
     });
     sheetStatus('✅', 'Scan saved — enter tape measurements to update the same row', '#1a9e5c');
   } catch(err) {
@@ -503,6 +507,7 @@ setTimeout(() => {
 document.getElementById('btn-again').addEventListener('click', () => {
   sessionStorage.removeItem('front_frames');
   sessionStorage.removeItem('side_frames');
+  sessionStorage.removeItem('diagonal_frames');
   window.location.href = 'index.html';
 });
 </script>

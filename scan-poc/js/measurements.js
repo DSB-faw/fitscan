@@ -1,4 +1,4 @@
-// measurements.js — Landmark math → body measurements (front + side scan)
+// measurements.js — Landmark math → body measurements (front + diagonal + side scan)
 const Measurements = (() => {
 
   // Ramanujan's second approximation for ellipse perimeter — most accurate simple formula
@@ -21,7 +21,19 @@ const Measurements = (() => {
     });
   }
 
-  function compute(frontLm, sideLm, heightCm, imgW, imgH) {
+  // Given front half-width a, side half-depth b, and observed 45° width D,
+  // return improved [a_best, b_best] using 3-view over-determined fit.
+  // At 45°, ellipse projects to: D = √2 · √(a² + b²)
+  // → b_from_diag = √(D²/2 − a²),  a_from_diag = √(D²/2 − b²)
+  function improvedAxes(F, S, D) {
+    const a0 = F / 2, b0 = S / 2;
+    const half2 = (D * D) / 2;
+    const b_d = Math.sqrt(Math.max(0, half2 - a0 * a0));
+    const a_d = Math.sqrt(Math.max(0, half2 - b0 * b0));
+    return [(a0 + a_d) / 2, (b0 + b_d) / 2];
+  }
+
+  function compute(frontLm, diagLm, sideLm, heightCm, imgW, imgH) {
     // ── CALIBRATION ─────────────────────────────────────────────────────────
     // Use nose(0) → average ankles(27,28) as our pixel ruler.
     // Real-world nose-to-ankle ≈ height − 12 cm (top of head to nose is ~12 cm).
@@ -98,11 +110,40 @@ const Measurements = (() => {
       (sRH.x + 0.75 * (sRK.x - sRH.x)) - (sLH.x + 0.75 * (sLK.x - sLH.x))
     ) * imgW * ratio;
 
+    // ── DIAGONAL SCAN (45°) ───────────────────────────────────────────────────
+    // Subject at 45° — front and side landmarks both partially visible.
+    // We read diagonal widths at the same T positions used in front scan.
+    let diagChestWidthCm = 0, diagWaistWidthCm = 0, diagHipWidthCm = 0;
+    if (diagLm) {
+      const dLS = diagLm[11]; const dRS = diagLm[12];
+      const dLH = diagLm[23]; const dRH = diagLm[24];
+      const diagWidthAtT = t => {
+        const lx = dLS.x + t * (dLH.x - dLS.x);
+        const rx = dRS.x + t * (dRH.x - dRS.x);
+        return Math.abs(rx - lx) * imgW * ratio;
+      };
+      diagChestWidthCm = diagWidthAtT(0.22);
+      diagWaistWidthCm = diagWidthAtT(0.55);
+      diagHipWidthCm   = Math.abs(dRH.x - dLH.x) * imgW * ratio;
+    }
+
     // ── CIRCUMFERENCES via Ramanujan ellipse ─────────────────────────────────
-    const chestCirc = ellipsePerimeter(chestWidthFrontCm / 2, chestDepthCm / 2);
-    const waistCirc = ellipsePerimeter(waistWidthFrontCm / 2, waistDepthCm / 2);
-    const hipCirc   = ellipsePerimeter(hipWidthFrontCm / 2,   hipDepthCm / 2);
-    const thighCirc = ellipsePerimeter(thighDiamFrontCm / 2,  thighDepthCm / 2);
+    // If diagonal scan is available, use 3-view improved axes; else fall back to 2-view.
+    let chestA, chestB, waistA, waistB, hipA, hipB;
+    if (diagLm && diagChestWidthCm > 0) {
+      [chestA, chestB] = improvedAxes(chestWidthFrontCm, chestDepthCm, diagChestWidthCm);
+      [waistA, waistB] = improvedAxes(waistWidthFrontCm, waistDepthCm, diagWaistWidthCm);
+      [hipA,   hipB]   = improvedAxes(hipWidthFrontCm,   hipDepthCm,   diagHipWidthCm);
+    } else {
+      chestA = chestWidthFrontCm / 2; chestB = chestDepthCm / 2;
+      waistA = waistWidthFrontCm / 2; waistB = waistDepthCm / 2;
+      hipA   = hipWidthFrontCm   / 2; hipB   = hipDepthCm   / 2;
+    }
+
+    const chestCirc = ellipsePerimeter(chestA, chestB);
+    const waistCirc = ellipsePerimeter(waistA, waistB);
+    const hipCirc   = ellipsePerimeter(hipA,   hipB);
+    const thighCirc = ellipsePerimeter(thighDiamFrontCm / 2, thighDepthCm / 2);
 
     return {
       height:    r(heightFromScanCm),
@@ -113,13 +154,13 @@ const Measurements = (() => {
       bicep:     r(bicepCircCm),
       thigh:     r(thighCirc),
       inseam:    r(inseamCm),
-      // Debug values shown in results — useful for tuning
       _debug: {
         ratio:       r(ratio * 100) / 100,
-        chestFront:  r(chestWidthFrontCm),  chestDepth:  r(chestDepthCm),
-        waistFront:  r(waistWidthFrontCm),  waistDepth:  r(waistDepthCm),
-        hipFront:    r(hipWidthFrontCm),     hipDepth:    r(hipDepthCm),
+        chestFront:  r(chestWidthFrontCm),  chestDepth:  r(chestDepthCm),  chestDiag: r(diagChestWidthCm),
+        waistFront:  r(waistWidthFrontCm),  waistDepth:  r(waistDepthCm),  waistDiag: r(diagWaistWidthCm),
+        hipFront:    r(hipWidthFrontCm),     hipDepth:    r(hipDepthCm),    hipDiag:   r(diagHipWidthCm),
         thighFront:  r(thighDiamFrontCm),   thighDepth:  r(thighDepthCm),
+        has3Views:   !!diagLm,
       }
     };
   }

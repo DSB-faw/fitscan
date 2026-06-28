@@ -38,7 +38,8 @@
       background: rgba(255,255,255,0.15);
       padding: 5px 12px; border-radius: 20px;
     }
-    #scan-label.side { background: rgba(91,141,184,0.5); }
+    #scan-label.side     { background: rgba(91,141,184,0.5); }
+    #scan-label.diagonal { background: rgba(155,89,182,0.5); }
     #btn-cancel {
       background: rgba(255,255,255,0.15);
       border: none; color: #fff; padding: 6px 14px;
@@ -186,11 +187,11 @@
   <div class="q-dot"><div class="q-dot-circle" id="q-lighting"></div><div class="q-dot-label">Light</div></div>
 </div>
 
-<!-- Transition between front and side -->
+<!-- Transition screen (reused between all scans) -->
 <div id="transition-screen">
-  <div class="transition-icon">↩️</div>
-  <div class="transition-title">Front scan done!</div>
-  <div class="transition-sub">Subject — turn to your <strong style="color:#fff">left</strong><br>Buddy — <strong style="color:#fff">stay in the same spot</strong></div>
+  <div class="transition-icon" id="trans-icon">↩️</div>
+  <div class="transition-title" id="trans-title">Scan done!</div>
+  <div class="transition-sub" id="trans-sub"></div>
   <div class="transition-countdown" id="countdown">3</div>
 </div>
 
@@ -235,10 +236,11 @@ const progressFill   = document.getElementById('progress-fill');
 const countdownEl    = document.getElementById('countdown');
 
 // ── State ───────────────────────────────────────────────────────────────────
-let state = 'LOADING'; // LOADING | FRONT | TRANSITION | SIDE | DONE
+let state = 'LOADING'; // LOADING | FRONT | TRANSITION | SIDE | DIAGONAL_TRANSITION | DIAGONAL | DONE
 const FRAMES_NEEDED = 15;
-let frontFrames = [];
-let sideFrames  = [];
+let frontFrames    = [];
+let sideFrames     = [];
+let diagonalFrames = [];
 let goodCount   = 0;
 let lastQuality = null;
 let imgW = 1, imgH = 1;
@@ -386,7 +388,7 @@ function updateProgress(n) {
 
 // ── MediaPipe onResults ───────────────────────────────────────────────────────
 function onResults(results) {
-  if (state === 'LOADING' || state === 'TRANSITION' || state === 'DONE') return;
+  if (state === 'LOADING' || state === 'TRANSITION' || state === 'DIAGONAL_TRANSITION' || state === 'DONE') return;
 
   const lm = results.poseLandmarks;
   imgW = video.videoWidth  || 640;
@@ -395,7 +397,7 @@ function onResults(results) {
   const brightness = lm ? getBrightness(lm[0]) : 128;
   const q = state === 'SIDE'
     ? Quality.checkSide(lm, brightness)
-    : Quality.checkFront(lm, brightness);
+    : Quality.checkFront(lm, brightness); // front and diagonal share same checks
 
   lastQuality = q;
   drawOverlay(lm, q.allPass);
@@ -405,8 +407,9 @@ function onResults(results) {
 
   if (q.allPass && lm) {
     goodCount++;
-    const frames = state === 'SIDE' ? sideFrames : frontFrames;
-    // Store a plain copy of the landmarks array
+    const frames = state === 'SIDE' ? sideFrames
+                 : state === 'DIAGONAL' ? diagonalFrames
+                 : frontFrames;
     frames.push(lm.map(l => ({ x: l.x, y: l.y, z: l.z, visibility: l.visibility })));
     updateProgress(goodCount);
 
@@ -414,40 +417,56 @@ function onResults(results) {
       if (state === 'FRONT') {
         state = 'TRANSITION';
         handleFrontDone();
-      } else {
-        state = 'DONE';
+      } else if (state === 'SIDE') {
+        state = 'DIAGONAL_TRANSITION';
         handleSideDone();
+      } else if (state === 'DIAGONAL') {
+        state = 'DONE';
+        handleDiagonalDone();
       }
     }
   } else {
     goodCount = 0;
-    // Reset frame buffers on bad frame — require consecutive good frames
-    if (state === 'FRONT') frontFrames = [];
-    else sideFrames = [];
+    if (state === 'FRONT')    frontFrames    = [];
+    else if (state === 'SIDE')     sideFrames     = [];
+    else if (state === 'DIAGONAL') diagonalFrames = [];
     updateProgress(0);
   }
 }
 
-// ── Front scan complete → transition screen ───────────────────────────────────
-function handleFrontDone() {
+// ── Generic transition screen helper ─────────────────────────────────────────
+function showTransition(icon, title, subHTML, voiceText, onComplete) {
   Voice.cancel();
   updateProgress(0);
-  setStatus('Front scan complete!', true);
-
-  setTimeout(() => {
-    Voice.speak('Front scan complete. Subject, turn to your left. Buddy, stay in the same spot.', true);
-    transScreen.classList.add('visible');
-    let count = 3;
+  document.getElementById('trans-icon').textContent  = icon;
+  document.getElementById('trans-title').textContent = title;
+  document.getElementById('trans-sub').innerHTML     = subHTML;
+  transScreen.classList.add('visible');
+  setTimeout(() => Voice.speak(voiceText, true), 300);
+  let count = 3;
+  countdownEl.textContent = count;
+  const interval = setInterval(() => {
+    count--;
     countdownEl.textContent = count;
-    const interval = setInterval(() => {
-      count--;
-      countdownEl.textContent = count;
-      if (count <= 0) {
-        clearInterval(interval);
-        transScreen.classList.remove('visible');
-        startSideScan();
-      }
-    }, 1000);
+    if (count <= 0) {
+      clearInterval(interval);
+      transScreen.classList.remove('visible');
+      onComplete();
+    }
+  }, 1000);
+}
+
+// ── Front scan complete → side transition ────────────────────────────────────
+function handleFrontDone() {
+  setStatus('Front scan complete!', true);
+  setTimeout(() => {
+    showTransition(
+      '↩️',
+      'Scan 1 of 3 done!',
+      'Subject — turn to your <strong style="color:#fff">left</strong><br>Buddy — <strong style="color:#fff">stay in the same spot</strong>',
+      'Front scan done. Subject, turn to your left. Buddy, stay in the same spot.',
+      startSideScan
+    );
   }, 400);
 }
 
@@ -456,24 +475,50 @@ function startSideScan() {
   state = 'SIDE';
   goodCount = 0;
   sideFrames = [];
-  scanLabel.textContent = 'Side Scan';
-  scanLabel.classList.add('side');
+  scanLabel.textContent = 'Side Scan — 2 of 3';
+  scanLabel.className = 'side';
   setStatus('Buddy — keep phone at shoulder height', false);
   Voice.speak('Starting side scan. Buddy, hold steady at shoulder height.', true);
 }
 
-// ── Side scan complete → save + navigate ─────────────────────────────────────
+// ── Side scan complete → diagonal transition ─────────────────────────────────
 function handleSideDone() {
+  setStatus('Side scan complete!', true);
+  setTimeout(() => {
+    showTransition(
+      '↗️',
+      'Scan 2 of 3 done!',
+      'Subject — turn back <strong style="color:#fff">45° to the right</strong><br>Face the corner — halfway between front and side<br>Buddy — <strong style="color:#fff">stay in the same spot</strong>',
+      'Side scan done. Subject, turn back 45 degrees to the right. Face the corner diagonally. Buddy, stay in the same spot.',
+      startDiagonalScan
+    );
+  }, 400);
+}
+
+// ── Start diagonal scan ───────────────────────────────────────────────────────
+function startDiagonalScan() {
+  state = 'DIAGONAL';
+  goodCount = 0;
+  diagonalFrames = [];
+  scanLabel.textContent = 'Diagonal Scan — 3 of 3';
+  scanLabel.className = 'diagonal';
+  setStatus('Buddy — keep phone at shoulder height', false);
+  Voice.speak('Starting diagonal scan. Subject, face the corner at 45 degrees. Hold still.', true);
+}
+
+// ── Diagonal scan complete → save + navigate ─────────────────────────────────
+function handleDiagonalDone() {
   Voice.cancel();
   updateProgress(0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   setStatus('All done — calculating measurements…', true);
-  Voice.speak('All done. Calculating measurements.', true);
+  Voice.speak('All scans done. Calculating measurements.', true);
 
-  sessionStorage.setItem('front_frames', JSON.stringify(frontFrames));
-  sessionStorage.setItem('side_frames',  JSON.stringify(sideFrames));
-  sessionStorage.setItem('img_width',    imgW);
-  sessionStorage.setItem('img_height',   imgH);
+  sessionStorage.setItem('front_frames',    JSON.stringify(frontFrames));
+  sessionStorage.setItem('side_frames',     JSON.stringify(sideFrames));
+  sessionStorage.setItem('diagonal_frames', JSON.stringify(diagonalFrames));
+  sessionStorage.setItem('img_width',  imgW);
+  sessionStorage.setItem('img_height', imgH);
 
   setTimeout(() => { window.location.href = 'results.html'; }, 1800);
 }
