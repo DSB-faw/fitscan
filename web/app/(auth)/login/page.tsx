@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
+  const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
 
@@ -18,12 +19,31 @@ export default function LoginPage() {
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true }
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      }
     })
     if (error) { setError(error.message); setLoading(false); return }
+    setSent(true)
+    setLoading(false)
+  }
 
-    sessionStorage.setItem('fitscan_email', email)
-    router.push('/verify')
+  if (sent) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-white">
+        <div className="w-full max-w-sm text-center">
+          <div className="text-5xl mb-6">📬</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Check your inbox</h1>
+          <p className="text-sm text-gray-500 mb-2">We sent a sign-in link to</p>
+          <p className="text-sm font-semibold text-gray-800 mb-6">{email}</p>
+          <p className="text-xs text-gray-400 mb-8">Click the link in the email to sign in. It expires in 1 hour.</p>
+          <button onClick={() => setSent(false)} className="text-sm text-gray-500 underline">
+            ← Use a different email
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -55,7 +75,7 @@ export default function LoginPage() {
             disabled={loading || !email.includes('@')}
             className="w-full py-3.5 bg-gray-900 text-white font-bold rounded-xl text-sm disabled:opacity-40 active:scale-[0.98] transition-transform"
           >
-            {loading ? 'Sending OTP…' : 'Send OTP →'}
+            {loading ? 'Sending…' : 'Send Sign-in Link →'}
           </button>
         </form>
 
