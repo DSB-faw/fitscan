@@ -33,9 +33,9 @@ export default function VerifyPage() {
   async function verify(code: string) {
     setLoading(true)
     setError('')
-    const phone = sessionStorage.getItem('fitscan_phone') || ''
+    const email = sessionStorage.getItem('fitscan_email') || ''
     const supabase = createClient()
-    const { data, error } = await supabase.auth.verifyOtp({ phone, token: code, type: 'sms' })
+    const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
     if (error) { setError('Invalid OTP — try again'); setLoading(false); setOtp(['','','','','','']); inputs.current[0]?.focus(); return }
 
     // Check if profile is complete
@@ -45,15 +45,15 @@ export default function VerifyPage() {
   }
 
   async function resend() {
-    const phone = sessionStorage.getItem('fitscan_phone') || ''
+    const email = sessionStorage.getItem('fitscan_email') || ''
     const supabase = createClient()
-    await supabase.auth.signInWithOtp({ phone })
+    await supabase.auth.signInWithOtp({ email })
     setResendTimer(30)
     setOtp(['', '', '', '', '', ''])
     inputs.current[0]?.focus()
   }
 
-  const phone = typeof window !== 'undefined' ? sessionStorage.getItem('fitscan_phone') : ''
+  const email = typeof window !== 'undefined' ? sessionStorage.getItem('fitscan_email') : ''
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-white">
@@ -63,7 +63,7 @@ export default function VerifyPage() {
         </button>
 
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Enter OTP</h1>
-        <p className="text-sm text-gray-500 mb-8">Sent to {phone}</p>
+        <p className="text-sm text-gray-500 mb-8">Sent to {email}</p>
 
         <div className="flex gap-2 mb-6">
           {otp.map((d, i) => (

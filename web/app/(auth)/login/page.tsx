@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
-  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -12,16 +12,14 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    // Normalise — prepend +91 if no country code
-    const normalised = phone.startsWith('+') ? phone : `+91${phone.replace(/\D/g, '')}`
-    if (normalised.length < 12) { setError('Enter a valid 10-digit mobile number'); return }
+    if (!email.includes('@')) { setError('Enter a valid email address'); return }
 
     setLoading(true)
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithOtp({ phone: normalised })
+    const { error } = await supabase.auth.signInWithOtp({ email })
     if (error) { setError(error.message); setLoading(false); return }
 
-    sessionStorage.setItem('fitscan_phone', normalised)
+    sessionStorage.setItem('fitscan_email', email)
     router.push('/verify')
   }
 
@@ -35,26 +33,23 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mobile number</label>
-            <div className="flex">
-              <span className="inline-flex items-center px-3.5 rounded-l-xl border border-r-0 border-gray-200 bg-gray-50 text-gray-500 text-sm font-medium">+91</span>
-              <input
-                type="tel"
-                inputMode="numeric"
-                placeholder="98765 43210"
-                value={phone}
-                onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                className="flex-1 px-4 py-3 border border-gray-200 rounded-r-xl text-base focus:outline-none focus:border-gray-900 bg-white"
-                required
-              />
-            </div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email address</label>
+            <input
+              type="email"
+              inputMode="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-base focus:outline-none focus:border-gray-900 bg-white"
+              required
+            />
           </div>
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
           <button
             type="submit"
-            disabled={loading || phone.length < 10}
+            disabled={loading || !email.includes('@')}
             className="w-full py-3.5 bg-gray-900 text-white font-bold rounded-xl text-sm disabled:opacity-40 active:scale-[0.98] transition-transform"
           >
             {loading ? 'Sending OTP…' : 'Send OTP →'}
