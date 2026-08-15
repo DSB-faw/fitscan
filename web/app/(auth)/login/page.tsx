@@ -16,7 +16,10 @@ export default function LoginPage() {
 
     setLoading(true)
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithOtp({ email })
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true }
+    })
     if (error) { setError(error.message); setLoading(false); return }
 
     sessionStorage.setItem('fitscan_email', email)

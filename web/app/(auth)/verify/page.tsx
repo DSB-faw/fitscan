@@ -36,9 +36,13 @@ export default function VerifyPage() {
     const email = sessionStorage.getItem('fitscan_email') || ''
     const supabase = createClient()
     const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
-    if (error) { setError('Invalid OTP — try again'); setLoading(false); setOtp(['','','','','','']); inputs.current[0]?.focus(); return }
-
-    // Check if profile is complete
+    if (error) {
+      setError('Invalid OTP — try again')
+      setLoading(false)
+      setOtp(['', '', '', '', '', ''])
+      inputs.current[0]?.focus()
+      return
+    }
     const { data: profile } = await supabase.from('profiles').select('name').eq('id', data.user!.id).single()
     if (!profile?.name) router.push('/onboard')
     else router.push('/')
@@ -47,7 +51,7 @@ export default function VerifyPage() {
   async function resend() {
     const email = sessionStorage.getItem('fitscan_email') || ''
     const supabase = createClient()
-    await supabase.auth.signInWithOtp({ email })
+    await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } })
     setResendTimer(30)
     setOtp(['', '', '', '', '', ''])
     inputs.current[0]?.focus()
