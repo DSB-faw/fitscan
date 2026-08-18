@@ -1,15 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-
-// Use direct supabase-js client with implicit flow (no PKCE) for magic links
-function getClient() {
-  return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { auth: { flowType: 'implicit' } }
-  )
-}
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -23,15 +14,13 @@ export default function LoginPage() {
     if (!email.includes('@')) { setError('Enter a valid email address'); return }
 
     setLoading(true)
-    const supabase = getClient()
+    const supabase = createClient()
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: {
-        shouldCreateUser: true,
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      }
+      options: { shouldCreateUser: true }
     })
     if (error) { setError(error.message); setLoading(false); return }
+    if (typeof window !== 'undefined') sessionStorage.setItem('fitscan_email', email)
     setSent(true)
     setLoading(false)
   }
@@ -42,10 +31,12 @@ export default function LoginPage() {
         <div className="w-full max-w-sm text-center">
           <div className="text-5xl mb-6">📬</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Check your inbox</h1>
-          <p className="text-sm text-gray-500 mb-2">We sent a sign-in link to</p>
+          <p className="text-sm text-gray-500 mb-2">We sent a 6-digit code to</p>
           <p className="text-sm font-semibold text-gray-800 mb-6">{email}</p>
-          <p className="text-xs text-gray-400 mb-8">Click the link in the email to sign in. It expires in 1 hour.</p>
-          <button onClick={() => setSent(false)} className="text-sm text-gray-500 underline">
+          <a href="/verify" className="block w-full py-3.5 bg-gray-900 text-white font-bold rounded-xl text-sm text-center">
+            Enter Code →
+          </a>
+          <button onClick={() => setSent(false)} className="mt-4 text-sm text-gray-500 underline">
             ← Use a different email
           </button>
         </div>
@@ -82,7 +73,7 @@ export default function LoginPage() {
             disabled={loading || !email.includes('@')}
             className="w-full py-3.5 bg-gray-900 text-white font-bold rounded-xl text-sm disabled:opacity-40 active:scale-[0.98] transition-transform"
           >
-            {loading ? 'Sending…' : 'Send Sign-in Link →'}
+            {loading ? 'Sending…' : 'Send Code →'}
           </button>
         </form>
 
