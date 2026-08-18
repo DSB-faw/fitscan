@@ -1,14 +1,21 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
+// Use direct supabase-js client with implicit flow (no PKCE) for magic links
+function getClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { flowType: 'implicit' } }
+  )
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
-  const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -16,7 +23,7 @@ export default function LoginPage() {
     if (!email.includes('@')) { setError('Enter a valid email address'); return }
 
     setLoading(true)
-    const supabase = createClient()
+    const supabase = getClient()
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
