@@ -29,5 +29,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/`)
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+  // For implicit flow, session is set via URL fragment on the client side
+  // Redirect to a client page that will detect the session
+  return NextResponse.redirect(`${origin}/auth/confirm`)
 }
