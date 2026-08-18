@@ -252,7 +252,13 @@ export default function ScanEngine({ userId }: { userId: string }) {
     }
 
     init()
-    return () => window.removeEventListener('resize', resize)
+    return () => {
+      window.removeEventListener('resize', resize)
+      // Stop all camera tracks to turn off the camera indicator
+      const stream = videoRef.current?.srcObject as MediaStream | null
+      stream?.getTracks().forEach(t => t.stop())
+      if (videoRef.current) videoRef.current.srcObject = null
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
