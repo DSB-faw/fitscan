@@ -218,7 +218,8 @@
 <script>
 // ── Redirect guard ──────────────────────────────────────────────────────────
 const HEIGHT_CM = parseFloat(sessionStorage.getItem('height_cm'));
-if (!HEIGHT_CM || HEIGHT_CM < 100) { window.location.href = 'index.html'; }
+const HAS_CONSENT = sessionStorage.getItem('scan_consent') === '1';
+if (!HEIGHT_CM || HEIGHT_CM < 100 || !HAS_CONSENT) { window.location.href = 'index.html'; }
 
 // ── DOM refs ────────────────────────────────────────────────────────────────
 const video          = document.getElementById('video');

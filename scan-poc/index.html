@@ -251,6 +251,19 @@
     </div>
   </div>
 
+  <!-- Consent -->
+  <div class="card">
+    <div class="card-title">Data &amp; Privacy</div>
+    <p style="font-size:13px; color:#555; line-height:1.5; margin-bottom:12px;">
+      This is an accuracy-test tool, not a finished product. Your camera is used live, in your browser, to estimate body measurements from front / side / diagonal poses. No photos or video are ever saved or uploaded — only the computed numeric measurements (e.g. chest, waist) are sent to a private spreadsheet so the builder can validate scan accuracy.
+    </p>
+    <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+      <input type="checkbox" id="consent-check" style="width:18px; height:18px; margin-top:1px; flex-shrink:0;">
+      <span style="font-size:13px; color:#333; font-weight:500;">I understand my camera will be used for a live pose scan, and my computed measurements (not photos or video) will be recorded for accuracy testing.</span>
+    </label>
+    <div class="error-msg" id="consent-error">Please check the box above to continue.</div>
+  </div>
+
   <!-- Start -->
   <button class="btn-start" id="btn-start" type="button">Start Scan →</button>
 
@@ -273,6 +286,8 @@
     const heightInput = document.getElementById('height');
     const heightVal   = parseFloat(heightInput.value);
     const errorEl     = document.getElementById('height-error');
+    const consentBox  = document.getElementById('consent-check');
+    const consentErr  = document.getElementById('consent-error');
 
     if (!heightVal || heightVal < 100 || heightVal > 250) {
       heightInput.classList.add('error');
@@ -284,6 +299,13 @@
     heightInput.classList.remove('error');
     errorEl.classList.remove('visible');
 
+    if (!consentBox.checked) {
+      consentErr.classList.add('visible');
+      consentBox.focus();
+      return;
+    }
+    consentErr.classList.remove('visible');
+
     // Prime Speech Synthesis from user gesture (required on iOS)
     try {
       const u = new SpeechSynthesisUtterance('');
@@ -294,6 +316,7 @@
     // Save to sessionStorage and navigate
     sessionStorage.setItem('subject_name', document.getElementById('subject-name').value.trim() || 'Subject');
     sessionStorage.setItem('height_cm', heightVal);
+    sessionStorage.setItem('scan_consent', '1');
 
     window.location.href = 'scan.html';
   });
